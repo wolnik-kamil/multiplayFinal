@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import {CanBeConnected, AskDBS} from '#components';
+
 
   enum PowiatEnum {
     Gliwicki = 'gliwicki'
   }
 
+  enum ConnectionConditions {
+    CanBeConnected = 'MOZNA_PODLACZAC',
+    AskDBS = 'PYTAC_DBS',
+    RequiredResources = 'WYMAGANE_ZASOBY',
+    CantBeConnected = 'NIE_PODLACZAMY',
+    PlannedSale = 'ZAPLANOWANA_SPRZEDAZ',
+    NotFound = 'NIE_ZNALEZIONO',
+    RequestMeasure = 'ZLECIC_POMIAR',
+    Null = 'NULL'
+  }
 
   interface ResponseI{
 
@@ -20,11 +32,14 @@
   const region_id = ref('')
 
 
-  const { data: response}  = await useFetch<ResponseI[]>('/api/address')
+const statusConnection = ConnectionConditions.CanBeConnected
 
 
-  function GetUserData() {
+  async function GetUserData() {
     console.log(city.value, region_id.value)
+    const { data: response}  = await useFetch<ResponseI[]>('/api/address', {
+      query: {search: city.value, woj_id: region_id.value}
+    })
   }
 
 </script>
@@ -48,9 +63,9 @@
           </td>
 
         </tr>
-    <div v-else>
-      <p>Brak danych :(</p>
-    </div>
+        <div v-else>
+          <p>Brak danych :(</p>
+        </div>
       </tbody>
     </table>
 
@@ -65,6 +80,13 @@
       <button class="btn" @click="GetUserData()">Send</button>
 
   </div>
+
+<!-- przykład -->
+  <CanBeConnected v-if="statusConnection === ConnectionConditions.CanBeConnected">
+  </CanBeConnected>
+
+  <AskDBS v-else-if="statusConnection === ConnectionConditions.AskDBS">
+  <AskDBS/>
 
 </template>
 <style>
