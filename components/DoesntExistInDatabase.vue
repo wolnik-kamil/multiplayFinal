@@ -1,5 +1,5 @@
 <template>
-  siemano trzeba zrobic pomiar
+  siemano nei istnieje
 </template>
 <script>
 </script>

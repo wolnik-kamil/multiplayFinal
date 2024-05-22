@@ -1,4 +1,4 @@
 <template>
-  siemano
+  siemano mozna podlaczac
 </template>
 <script></script>

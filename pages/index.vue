@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import {CanBeConnected, AskDBS} from '#components';
+import {CanBeConnected, AskDBS, CantBeConnected, DoesntExistInDatabase, Null, PlannedSale, RequestMeasure, RequiredResources} from '#components';
 
 
   enum PowiatEnum {
     Gliwicki = 'gliwicki'
   }
 
-  enum ConnectionConditions {
+  enum ConnectionConditionsEnum {
     CanBeConnected = 'MOZNA_PODLACZAC',
     AskDBS = 'PYTAC_DBS',
     RequiredResources = 'WYMAGANE_ZASOBY',
     CantBeConnected = 'NIE_PODLACZAMY',
     PlannedSale = 'ZAPLANOWANA_SPRZEDAZ',
-    NotFound = 'NIE_ZNALEZIONO',
+    DoesntExistInDatabase = 'NIE_ZNALEZIONO',
     RequestMeasure = 'ZLECIC_POMIAR',
     Null = 'NULL'
   }
@@ -31,22 +31,31 @@ import {CanBeConnected, AskDBS} from '#components';
   const city = ref('')
   const region_id = ref('')
 
+  const data = ref<ResponseI>();
+  const statusConnection = ConnectionConditionsEnum.AskDBS
 
-const statusConnection = ConnectionConditions.CanBeConnected
 
-
-  async function GetUserData() {
-    console.log(city.value, region_id.value)
+  async function getUserData() {
     const { data: response}  = await useFetch<ResponseI[]>('/api/address', {
       query: {search: city.value, woj_id: region_id.value}
     })
+
+    if(!response.value?.length) {
+      return;
+    }
+
+    data.value = response.value[0]
+  }
+
+  function handleDataSent($event) {
+    console.log($event)
   }
 
 </script>
 <template>
 
-  <div class="container">
-    <table>
+  <div class="flex flex-row justify-evenly">
+    <table class="table-fixed">
       <thead>
         <th scope="col">Powiat</th>
         <th scope="col">Gmina</th>
@@ -57,15 +66,16 @@ const statusConnection = ConnectionConditions.CanBeConnected
         <th scope="col">nazwa_pod</th>
       </thead>
       <tbody>
-        <tr v-if="!!response">
-          <td v-for="index in response[0]">
+
+        <tr v-if="!!data">
+          <td v-for="index in data">
               {{index}}
           </td>
 
         </tr>
-        <div v-else>
-          <p>Brak danych :(</p>
-        </div>
+        <tr v-else>
+          <td>Brak danych :(</td>
+        </tr>
       </tbody>
     </table>
 
@@ -77,35 +87,33 @@ const statusConnection = ConnectionConditions.CanBeConnected
         Podaj ID województwa
         <input v-model="region_id" type="number">
       </label>
-      <button class="btn" @click="GetUserData()">Send</button>
+      <button class="btn btn-blue" @click="getUserData()">Send</button>
 
   </div>
 
-<!-- przykład -->
-  <CanBeConnected v-if="statusConnection === ConnectionConditions.CanBeConnected">
+  <AskDBS @data-sent="handleDataSent($e)" v-if="statusConnection === ConnectionConditionsEnum.AskDBS">
+  </AskDBS>
+
+  <CanBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">
   </CanBeConnected>
 
-  <AskDBS v-else-if="statusConnection === ConnectionConditions.AskDBS">
-  <AskDBS/>
+  <CantBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CantBeConnected">
+  </CantBeConnected>
+
+  <DoesntExistInDatabase v-else-if="statusConnection === ConnectionConditionsEnum.DoesntExistInDatabase">
+  </DoesntExistInDatabase>
+
+  <Null v-else-if="statusConnection === ConnectionConditionsEnum.Null">
+  </Null>
+
+  <PlannedSale v-else-if="statusConnection === ConnectionConditionsEnum.PlannedSale">
+  </PlannedSale>
+
+  <RequestMeasure v-else-if="statusConnection === ConnectionConditionsEnum.RequestMeasure">
+  </RequestMeasure>
+
+  <RequiredResources v-else-if="statusConnection === ConnectionConditionsEnum.RequiredResources">
+  </RequiredResources>
 
 </template>
-<style>
-.container{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-evenly;
-}
-table, tr, td, th {
-  border: 1px solid black;
-  border-collapse: collapse;
-}
-form {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-}
-.btn {
-  width: 80px;
-  height: 30px;
-}
-</style>
+
