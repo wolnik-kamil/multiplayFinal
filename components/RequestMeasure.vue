@@ -1,5 +1,0 @@
-<template>
-  siemano trzeba zrobic pomiar
-</template>
-<script>
-</script>

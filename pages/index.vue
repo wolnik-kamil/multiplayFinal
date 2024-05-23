@@ -1,25 +1,20 @@
 <script setup lang="ts">
-import {CanBeConnected, AskDBS, CantBeConnected, DoesntExistInDatabase, Null, PlannedSale, RequestMeasure, RequiredResources} from '#components';
+  //import {CanBeConnected, Test, CantBeConnected, Null} from '#components';
+  import Multiselect from 'vue-multiselect'
 
 
-  enum PowiatEnum {
-    Gliwicki = 'gliwicki'
-  }
+
 
   enum ConnectionConditionsEnum {
     CanBeConnected = 'MOZNA_PODLACZAC',
-    AskDBS = 'PYTAC_DBS',
-    RequiredResources = 'WYMAGANE_ZASOBY',
     CantBeConnected = 'NIE_PODLACZAMY',
-    PlannedSale = 'ZAPLANOWANA_SPRZEDAZ',
-    DoesntExistInDatabase = 'NIE_ZNALEZIONO',
-    RequestMeasure = 'ZLECIC_POMIAR',
-    Null = 'NULL'
+    Null = 'NULL',
+    Test = 'TEST'
   }
 
-  interface ResponseI{
+  interface SimcI {
 
-      powiat: PowiatEnum,
+      powiat: string,
       gmina: string,
       miasto: string,
       simc: number,
@@ -28,92 +23,173 @@ import {CanBeConnected, AskDBS, CantBeConnected, DoesntExistInDatabase, Null, Pl
       nazwa_pod?: string
 
   }
+
   const city = ref('')
-  const region_id = ref('')
+  const street = ref('')
+  const zip = ref('')
+  const house = ref('')
+  const cities = ref<string[]>([])
 
-  const data = ref<ResponseI>();
-  const statusConnection = ConnectionConditionsEnum.AskDBS
+  const data = ref<SimcI>();
+  const statusConnection = ConnectionConditionsEnum.Test
 
+  // function handleDataSent(n:number):void {
+  //   console.log(n)
+  // }
 
-  async function getUserData() {
-    const { data: response}  = await useFetch<ResponseI[]>('/api/address', {
-      query: {search: city.value, woj_id: region_id.value}
+  async function getUserData(cityName:string):Promise<void> {
+    const { data: response}  = await useFetch<SimcI[]>('/api/address/city', {
+      search: [cityName]
     })
 
     if(!response.value?.length) {
       return;
     }
 
-    data.value = response.value[0]
-  }
+    cities.value = response.value.map((simc) => simc.miasto)
 
-  function handleDataSent($event) {
-    console.log($event)
+
   }
+  //Dynamic city searching
+
 
 </script>
 <template>
+<div class="container">
+  <div class="flex flex-row justify-evenly form">
+<!--    <label for="city">-->
+<!--      Miejscowość-->
+<!--      <input v-model="city" type="text" placeholder="np. Knurów">-->
+<!--    </label>-->
+<!--    <label for="street">-->
+<!--      Ulica:-->
+<!--      <input v-model="street" type="text" placeholder="np. Szpitalna">-->
+<!--    </label>-->
+<!--    <label for="zip">-->
+<!--      Kod pocztowy:-->
+<!--      <input v-model="zip" type="number" placeholder="np. 44-190">-->
+<!--    </label>-->
+<!--    <label for="house">-->
+<!--      Numer domu/budynku:-->
+<!--      <input v-model="house" type="number" placeholder="np. 8">-->
+<!--    </label>-->
+<!--    <label>-->
+<!--      <button class="btn btn-blue" @click="getUserData()">Wyślij</button>-->
+<!--    </label>-->
+  </div>
+  <div class="secondForm">
+    <label for="city">
+      Miejscowość:
+      <div class="multiselect">
+        <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
+                     placeholder="np. Knurów" @search-change="getUserData" :limit="3">
+        </multiselect>
+      </div>
+    </label>
 
-  <div class="flex flex-row justify-evenly">
-    <table class="table-fixed">
-      <thead>
-        <th scope="col">Powiat</th>
-        <th scope="col">Gmina</th>
-        <th scope="col">Miasto</th>
-        <th scope="col">simc</th>
-        <th scope="col">terc</th>
-        <th scope="col">nazwa_rm</th>
-        <th scope="col">nazwa_pod</th>
-      </thead>
-      <tbody>
+    <label for="street">
+      Ulica:
+      <div class="multiselect">
+        <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
+                     placeholder="np. Szpitalna" @search-change="getUserData">
+        </multiselect>
+      </div>
+    </label>
 
-        <tr v-if="!!data">
-          <td v-for="index in data">
-              {{index}}
-          </td>
+    <label for="zip">
+      Kod pocztowy:
+      <div class="multiselect">
+        <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
+                     placeholder="np. 44-190" @search-change="getUserData">
+        </multiselect>
+      </div>
+    </label>
 
-        </tr>
-        <tr v-else>
-          <td>Brak danych :(</td>
-        </tr>
-      </tbody>
-    </table>
+    <label for="house">
+      Numer domu/budynku:
+      <div class="multiselect">
+        <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
+                     placeholder="np. 8" @search-change="getUserData">
+        </multiselect>
+      </div>
+    </label>
 
-      <label for="City">
-        Podaj nazwe miejsowości
-        <input v-model="city" type="text">
-      </label>
-      <label for="RegionId">
-        Podaj ID województwa
-        <input v-model="region_id" type="number">
-      </label>
-      <button class="btn btn-blue" @click="getUserData()">Send</button>
 
   </div>
+</div>
 
-  <AskDBS @data-sent="handleDataSent($e)" v-if="statusConnection === ConnectionConditionsEnum.AskDBS">
-  </AskDBS>
 
-  <CanBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">
-  </CanBeConnected>
+<!--  <test @data-sent="handleDataSent" v-if="statusConnection === ConnectionConditionsEnum.Test">-->
+<!--  </test>-->
 
-  <CantBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CantBeConnected">
-  </CantBeConnected>
+<!--  <CanBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">-->
+<!--  </CanBeConnected>-->
 
-  <DoesntExistInDatabase v-else-if="statusConnection === ConnectionConditionsEnum.DoesntExistInDatabase">
-  </DoesntExistInDatabase>
+<!--  <CantBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CantBeConnected">-->
+<!--  </CantBeConnected>-->
 
-  <Null v-else-if="statusConnection === ConnectionConditionsEnum.Null">
-  </Null>
+<!--  <Null v-else-if="statusConnection === ConnectionConditionsEnum.Null">-->
+<!--  </Null>-->
 
-  <PlannedSale v-else-if="statusConnection === ConnectionConditionsEnum.PlannedSale">
-  </PlannedSale>
-
-  <RequestMeasure v-else-if="statusConnection === ConnectionConditionsEnum.RequestMeasure">
-  </RequestMeasure>
-
-  <RequiredResources v-else-if="statusConnection === ConnectionConditionsEnum.RequiredResources">
-  </RequiredResources>
 
 </template>
+<style src="../node_modules/vue-multiselect/dist/vue-multiselect.css"></style>
+<style>
 
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+
+    align-items: center;
+    justify-content: space-around;
+  }
+  .secondForm {
+    display: flex;
+    justify-content: center;
+    width: max-content;
+    flex-direction: row;
+  }
+  .secondForm>label {
+    margin-bottom: 1rem;
+  }
+  .secondForm>label>.multiselect {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+  }
+  .form {
+    display: flex;
+    justify-content: center;
+    width: max-content;
+    flex-direction: column;
+  }
+  .form>label:last-child {
+    width: max-content;
+    margin: 0 auto;
+  }
+  .form>label>input {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+  }
+
+  .form>label>button {
+    padding: 0.8rem;
+    width: 7rem;
+    background: #0067a5;
+    color: #fff;
+    border: none;
+    border-radius: 10rem;
+    text-transform: uppercase;
+  }
+
+  .form>label>button:hover {
+    cursor: pointer;
+  }
+
+
+
+
+</style>
