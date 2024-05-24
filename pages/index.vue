@@ -39,7 +39,7 @@
 
   async function getUserData(cityName:string):Promise<void> {
     const { data: response}  = await useFetch<SimcI[]>('/api/address/city', {
-      search: [cityName]
+      query: {search: cityName}
     })
 
     if(!response.value?.length) {
