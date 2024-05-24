@@ -1,9 +1,7 @@
 <script setup lang="ts">
   //import {CanBeConnected, Test, CantBeConnected, Null} from '#components';
   import Multiselect from 'vue-multiselect'
-
-
-
+  import {defineComponent} from 'vue';
 
   enum ConnectionConditionsEnum {
     CanBeConnected = 'MOZNA_PODLACZAC',
@@ -21,23 +19,19 @@
       terc: number,
       nazwa_rm: string,
       nazwa_pod?: string
-
   }
+  //const statusConnection = ConnectionConditionsEnum.Test
 
-  const city = ref('')
-  const street = ref('')
-  const zip = ref('')
-  const house = ref('')
-  const cities = ref<string[]>([])
 
-  const data = ref<SimcI>();
-  const statusConnection = ConnectionConditionsEnum.Test
 
-  // function handleDataSent(n:number):void {
-  //   console.log(n)
-  // }
+  const cities = ref<string>()
+  const selectedCity = ref<SimcI | null>(null)
+  const streets = ref<string>()
 
-  async function getUserData(cityName:string):Promise<void> {
+
+
+  //Zapis nazwy miasta i wysyłanie do pliku /
+  async function getCities(cityName:string):Promise<void> {
     const { data: response}  = await useFetch<SimcI[]>('/api/address/city', {
       query: {search: cityName}
     })
@@ -46,52 +40,47 @@
       return;
     }
 
-    cities.value = response.value.map((simc) => simc.miasto)
+    cities.value = response.value
+  }
 
+
+
+  //Zapis simc miasta i wyświetlanie ulic danej miejscowości
+  async function getStreets(streetName:string):Promise<void> {
+    const { data: response}  = await useFetch<SimcI[]>('/api/address/street', {
+      query: {search: streetName, simc: selectedCity.value?.simc}
+    })
+
+    if(!response.value?.length) {
+      return;
+    }
+
+    streets.value = response.value
 
   }
-  //Dynamic city searching
-
+  // function handleDataSent(n:number):void {
+  //   console.log(n)
+  // }
 
 </script>
 <template>
 <div class="container">
-  <div class="flex flex-row justify-evenly form">
-<!--    <label for="city">-->
-<!--      Miejscowość-->
-<!--      <input v-model="city" type="text" placeholder="np. Knurów">-->
-<!--    </label>-->
-<!--    <label for="street">-->
-<!--      Ulica:-->
-<!--      <input v-model="street" type="text" placeholder="np. Szpitalna">-->
-<!--    </label>-->
-<!--    <label for="zip">-->
-<!--      Kod pocztowy:-->
-<!--      <input v-model="zip" type="number" placeholder="np. 44-190">-->
-<!--    </label>-->
-<!--    <label for="house">-->
-<!--      Numer domu/budynku:-->
-<!--      <input v-model="house" type="number" placeholder="np. 8">-->
-<!--    </label>-->
-<!--    <label>-->
-<!--      <button class="btn btn-blue" @click="getUserData()">Wyślij</button>-->
-<!--    </label>-->
-  </div>
   <div class="secondForm">
     <label for="city">
       Miejscowość:
       <div class="multiselect">
-        <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
-                     placeholder="np. Knurów" @search-change="getUserData" :limit="3">
+        <multiselect v-model="selectedCity" label="miasto" :options="cities" :searchable="true" :close-on-select="true" :show-labels="false"
+                     placeholder="np. Knurów" @search-change="getCities" :limit="3" :options-limit="10">
         </multiselect>
+
       </div>
     </label>
 
     <label for="street">
       Ulica:
       <div class="multiselect">
-        <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
-                     placeholder="np. Szpitalna" @search-change="getUserData">
+        <multiselect  :options="streets" label="ulica" :searchable="true" :close-on-select="false" :show-labels="false"
+                     placeholder="np. Szpitalna" @search-change="getStreets" :options-limit="10">
         </multiselect>
       </div>
     </label>
@@ -100,7 +89,7 @@
       Kod pocztowy:
       <div class="multiselect">
         <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
-                     placeholder="np. 44-190" @search-change="getUserData">
+                     placeholder="np. 44-190" @search-change="getCities">
         </multiselect>
       </div>
     </label>
@@ -109,7 +98,7 @@
       Numer domu/budynku:
       <div class="multiselect">
         <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
-                     placeholder="np. 8" @search-change="getUserData">
+                     placeholder="np. 8" @search-change="getCities">
         </multiselect>
       </div>
     </label>
