@@ -10,27 +10,25 @@
     Test = 'TEST'
   }
 
-  interface SimcI {
 
-      powiat: string,
-      gmina: string,
-      miasto: string,
-      simc: number,
-      terc: number,
-      nazwa_rm: string,
-      nazwa_pod?: string
-  }
   //const statusConnection = ConnectionConditionsEnum.Test
 
+  //Zapis nazwy miasta i wysyłanie do pliku
 
+  interface SimcI {
 
-  const cities = ref<string>()
+    powiat: string,
+    gmina: string,
+    miasto: string,
+    simc: number,
+    terc: number,
+    nazwa_rm: string,
+    nazwa_pod?: string
+  }
+
+  const cities = ref<string[]>([])
   const selectedCity = ref<SimcI | null>(null)
-  const streets = ref<string>()
 
-
-
-  //Zapis nazwy miasta i wysyłanie do pliku /
   async function getCities(cityName:string):Promise<void> {
     const { data: response}  = await useFetch<SimcI[]>('/api/address/city', {
       query: {search: cityName}
@@ -43,11 +41,18 @@
     cities.value = response.value
   }
 
-
-
   //Zapis simc miasta i wyświetlanie ulic danej miejscowości
+
+  interface UlicI {
+    ulic: number,
+    ulica: string
+  }
+
+  const streets = ref<string[]>([])
+  const selectedStreet = ref<UlicI | null>(null)
+
   async function getStreets(streetName:string):Promise<void> {
-    const { data: response}  = await useFetch<SimcI[]>('/api/address/street', {
+    const { data: response}  = await useFetch<UlicI[]>('/api/address/street', {
       query: {search: streetName, simc: selectedCity.value?.simc}
     })
 
@@ -58,6 +63,18 @@
     streets.value = response.value
 
   }
+
+  const selectedHouseNumber = ref<string>()
+
+  async function getHouseNumber() {
+    const {data: response}  = await useFetch('/api/address/house', {
+      query: {houseNumber: selectedHouseNumber, ulic: selectedStreet.value?.ulic, terc: selectedCity.value?.terc, simc: selectedCity.value?.simc}
+    })
+
+    console.log(response.value)
+  }
+
+
   // function handleDataSent(n:number):void {
   //   console.log(n)
   // }
@@ -68,7 +85,7 @@
   <div class="secondForm">
     <label for="city">
       Miejscowość:
-      <div class="multiselect">
+      <div class="user-address-forms">
         <multiselect v-model="selectedCity" label="miasto" :options="cities" :searchable="true" :close-on-select="true" :show-labels="false"
                      placeholder="np. Knurów" @search-change="getCities" :limit="3" :options-limit="10">
         </multiselect>
@@ -78,16 +95,16 @@
 
     <label for="street">
       Ulica:
-      <div class="multiselect">
-        <multiselect  :options="streets" label="ulica" :searchable="true" :close-on-select="false" :show-labels="false"
-                     placeholder="np. Szpitalna" @search-change="getStreets" :options-limit="10">
+      <div class="user-address-forms">
+        <multiselect v-model="selectedStreet"  :options="streets" label="ulica" :searchable="true" :close-on-select="true" :show-labels="false"
+                     placeholder="np. Szpitalna" @search-change="getStreets" :limit="3" :options-limit="10">
         </multiselect>
       </div>
     </label>
 
     <label for="zip">
       Kod pocztowy:
-      <div class="multiselect">
+      <div class="user-address-forms">
         <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
                      placeholder="np. 44-190" @search-change="getCities">
         </multiselect>
@@ -96,10 +113,8 @@
 
     <label for="house">
       Numer domu/budynku:
-      <div class="multiselect">
-        <multiselect  :options="cities" :searchable="true" :close-on-select="false" :show-labels="false"
-                     placeholder="np. 8" @search-change="getCities">
-        </multiselect>
+      <div class="user-address-forms">
+        <input class=" formInput multiselect__current " type="text" min="1" @input="getHouseNumber" v-model="selectedHouseNumber">
       </div>
     </label>
 
@@ -128,7 +143,6 @@
   .container {
     display: flex;
     flex-wrap: wrap;
-
     align-items: center;
     justify-content: space-around;
   }
@@ -141,44 +155,16 @@
   .secondForm>label {
     margin-bottom: 1rem;
   }
-  .secondForm>label>.multiselect {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    box-sizing: border-box;
-  }
-  .form {
-    display: flex;
-    justify-content: center;
-    width: max-content;
-    flex-direction: column;
-  }
-  .form>label:last-child {
-    width: max-content;
-    margin: 0 auto;
-  }
-  .form>label>input {
+  .secondForm>label>.user-address-forms {
     width: 100%;
     padding: 12px 20px;
     margin: 8px 0;
     box-sizing: border-box;
   }
 
-  .form>label>button {
-    padding: 0.8rem;
+  .formInput {
     width: 7rem;
-    background: #0067a5;
-    color: #fff;
-    border: none;
-    border-radius: 10rem;
-    text-transform: uppercase;
   }
-
-  .form>label>button:hover {
-    cursor: pointer;
-  }
-
-
 
 
 </style>

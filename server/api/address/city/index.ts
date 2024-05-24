@@ -5,10 +5,10 @@ export default defineEventHandler(async (event) => {
     const query = getQuery(event)
     const cityQuery = query.search
 
-    const address = await $fetch(`https://mms-demo.dev.multiplay.pl/api/address/teryt/simc/search?search=${cityQuery}`, {
+    const getCity = await $fetch(`https://mms-demo.dev.multiplay.pl/api/address/teryt/simc/search?search=${cityQuery}`, {
         headers: {
             Authorization: `token ${config.mmsToken}`
         }
     })
-    return address
+    return getCity
 })
