@@ -86,7 +86,7 @@
 <template>
 
 <div class="container">
-  <div class="addressForm">
+  <div class="addressForm" v-if="!statusConnection">
     <label for="city">
       Miejscowość:
       <div class="user-address-forms">
@@ -122,19 +122,19 @@
       </div>
     </label>
   </div>
-<!--  <div class="conditionsResults" v-else-if="statusConnection">-->
-<!--    <CanBeConnected @data-sent="handleDataSent" v-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">-->
-<!--    </CanBeConnected>-->
+  <div class="conditionsResults" v-else-if="statusConnection">
+    <CanBeConnected @data-sent="handleDataSent" v-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">
+    </CanBeConnected>
 
-<!--    <CantBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CantBeConnected">-->
-<!--    </CantBeConnected>-->
+    <CantBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CantBeConnected">
+    </CantBeConnected>
 
-<!--    <HaventBeenFound v-else-if="statusConnection === ConnectionConditionsEnum.HaventBeenFound">-->
-<!--    </HaventBeenFound>-->
+    <HaventBeenFound v-else-if="statusConnection === ConnectionConditionsEnum.HaventBeenFound">
+    </HaventBeenFound>
 
-<!--    <Null v-else-if="statusConnection === ConnectionConditionsEnum.Null">-->
-<!--    </Null>-->
-<!--  </div>-->
+    <Null v-else-if="statusConnection === ConnectionConditionsEnum.Null">
+    </Null>
+  </div>
 </div>
 
 
