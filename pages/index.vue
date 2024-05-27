@@ -2,6 +2,7 @@
   import {CanBeConnected, CantBeConnected, HaventBeenFound, Null} from '#components';
   import Multiselect from 'vue-multiselect'
 
+
   enum ConnectionConditionsEnum {
     CanBeConnected = 'MOZNA_PODLACZAC',
     CantBeConnected = 'NIE_PODLACZAMY',
@@ -58,13 +59,12 @@
 
   }
 
-
   interface ConnectionConditionsI {
     connection_conditions: string
   }
 
   const selectedHouseNumber = ref<number>()
-  const statusConnection = ref<ConnectionConditionsI[] | null>(null)
+  const statusConnection = ref()
 
   async function getHouseNumber() {
     const {data: response}  = await useFetch<ConnectionConditionsI[]>('/api/address/house', {
@@ -84,8 +84,10 @@
 
 </script>
 <template>
+  <CanBeConnected></CanBeConnected>
 
-<div class="container">
+<div class="containerC">
+
   <div class="addressForm" v-if="!statusConnection">
     <label for="city">
       Miejscowość:
@@ -144,11 +146,13 @@
 <style src="../node_modules/vue-multiselect/dist/vue-multiselect.css"></style>
 <style>
 
-  .container {
+  .containerC {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    bottom: 0;
   }
   .addressForm {
     display: flex;
