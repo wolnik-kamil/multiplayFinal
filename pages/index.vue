@@ -1,20 +1,15 @@
 <script setup lang="ts">
-  //import {CanBeConnected, Test, CantBeConnected, Null} from '#components';
+  import {CanBeConnected, CantBeConnected, HaventBeenFound, Null} from '#components';
   import Multiselect from 'vue-multiselect'
-  import {defineComponent} from 'vue';
 
   enum ConnectionConditionsEnum {
     CanBeConnected = 'MOZNA_PODLACZAC',
     CantBeConnected = 'NIE_PODLACZAMY',
+    HaventBeenFound = 'nie_znaleziono',
     Null = 'NULL',
-    Test = 'TEST'
   }
 
-
-  //const statusConnection = ConnectionConditionsEnum.Test
-
   //Zapis nazwy miasta i wysyłanie do pliku
-
   interface SimcI {
 
     powiat: string,
@@ -26,7 +21,7 @@
     nazwa_pod?: string
   }
 
-  const cities = ref<string[]>([])
+  const cities = ref<object[]>([])
   const selectedCity = ref<SimcI | null>(null)
 
   async function getCities(cityName:string):Promise<void> {
@@ -42,13 +37,12 @@
   }
 
   //Zapis simc miasta i wyświetlanie ulic danej miejscowości
-
   interface UlicI {
     ulic: number,
     ulica: string
   }
 
-  const streets = ref<string[]>([])
+  const streets = ref<object[]>([])
   const selectedStreet = ref<UlicI | null>(null)
 
   async function getStreets(streetName:string):Promise<void> {
@@ -64,25 +58,35 @@
 
   }
 
-  const selectedHouseNumber = ref<string>()
 
-  async function getHouseNumber() {
-    const {data: response}  = await useFetch('/api/address/house', {
-      query: {houseNumber: selectedHouseNumber, ulic: selectedStreet.value?.ulic, terc: selectedCity.value?.terc, simc: selectedCity.value?.simc}
-    })
-
-    console.log(response.value)
+  interface ConnectionConditionsI {
+    connection_conditions: string
   }
 
+  const selectedHouseNumber = ref<number>()
+  const statusConnection = ref<ConnectionConditionsI[] | null>(null)
 
-  // function handleDataSent(n:number):void {
-  //   console.log(n)
-  // }
+  async function getHouseNumber() {
+    const {data: response}  = await useFetch<ConnectionConditionsI[]>('/api/address/house', {
+      query: {houseNumber: selectedHouseNumber, ulic: selectedStreet.value?.ulic, terc: selectedCity.value?.terc, simc: selectedCity.value?.simc}
+    })
+    if(!response?.value) {
+      return;
+    }
+    response.value = response.value.data.connection_conditions
+    console.log(response.value)
+    statusConnection.value = response.value
+  }
+
+  function handleDataSent(n:number):void {
+    console.log(n)
+  }
 
 </script>
 <template>
+
 <div class="container">
-  <div class="secondForm">
+  <div class="addressForm">
     <label for="city">
       Miejscowość:
       <div class="user-address-forms">
@@ -117,23 +121,23 @@
         <input class=" formInput multiselect__current " type="text" min="1" @input="getHouseNumber" v-model="selectedHouseNumber">
       </div>
     </label>
-
-
   </div>
+<!--  <div class="conditionsResults" v-else-if="statusConnection">-->
+<!--    <CanBeConnected @data-sent="handleDataSent" v-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">-->
+<!--    </CanBeConnected>-->
+
+<!--    <CantBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CantBeConnected">-->
+<!--    </CantBeConnected>-->
+
+<!--    <HaventBeenFound v-else-if="statusConnection === ConnectionConditionsEnum.HaventBeenFound">-->
+<!--    </HaventBeenFound>-->
+
+<!--    <Null v-else-if="statusConnection === ConnectionConditionsEnum.Null">-->
+<!--    </Null>-->
+<!--  </div>-->
 </div>
 
 
-<!--  <test @data-sent="handleDataSent" v-if="statusConnection === ConnectionConditionsEnum.Test">-->
-<!--  </test>-->
-
-<!--  <CanBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">-->
-<!--  </CanBeConnected>-->
-
-<!--  <CantBeConnected v-else-if="statusConnection === ConnectionConditionsEnum.CantBeConnected">-->
-<!--  </CantBeConnected>-->
-
-<!--  <Null v-else-if="statusConnection === ConnectionConditionsEnum.Null">-->
-<!--  </Null>-->
 
 
 </template>
@@ -144,18 +148,18 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
+  }
+  .addressForm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: space-around;
   }
-  .secondForm {
-    display: flex;
-    justify-content: center;
-    width: max-content;
-    flex-direction: row;
-  }
-  .secondForm>label {
+  .addressForm>label {
     margin-bottom: 1rem;
   }
-  .secondForm>label>.user-address-forms {
+  .addressForm>label>.user-address-forms {
     width: 100%;
     padding: 12px 20px;
     margin: 8px 0;
