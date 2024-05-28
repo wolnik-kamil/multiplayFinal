@@ -24,6 +24,7 @@
 
   const cities = ref<object[]>([])
   const selectedCity = ref<SimcI | null>(null)
+  const regions = ref<object[]>([])
 
   async function getCities(cityName:string):Promise<void> {
     const { data: response}  = await useFetch<SimcI[]>('/api/address/city', {
@@ -59,23 +60,53 @@
 
   }
 
-  interface ConnectionConditionsI {
-    connection_conditions: string
+  interface GeneralConnectionConditionsI {
+    connection_conditions: string,
+    sale_internet_max_speed: number,
+    sale_iptv_access: string,
+    connection_extra_payment: string,
+    substructure_monthly_payment: string,
+    connection_days_needed: number
   }
 
   const selectedHouseNumber = ref<number>()
   const statusConnection = ref()
 
   async function getHouseNumber() {
-    const {data: response}  = await useFetch<ConnectionConditionsI[]>('/api/address/house', {
+    const {data: response}  = await useFetch<GeneralConnectionConditionsI[]>('/api/address/house', {
       query: {houseNumber: selectedHouseNumber, ulic: selectedStreet.value?.ulic, terc: selectedCity.value?.terc, simc: selectedCity.value?.simc}
     })
     if(!response?.value) {
       return;
     }
-    response.value = response.value.data.connection_conditions
     console.log(response.value)
-    statusConnection.value = response.value
+    const responseCondition = response.value.data
+    if  (responseCondition.connection_conditions == 'MOZNA_PODLACZAC' &&
+        (
+            responseCondition.sale_internet_max_speed < 1000 ||
+            responseCondition.sale_iptv_access == 'NIE' ||
+            responseCondition.connection_extra_payment != 0.00 ||
+            responseCondition.substructure_monthly_payment != 0.00 ||
+            responseCondition.connection_days_needed != 0
+        )
+    )
+    {
+      statusConnection.value = ConnectionConditionsEnum.CantBeConnected
+    }
+    else if (responseCondition.connection_conditions == 'MOZNA_PODLACZAC')
+    {
+      response.value = responseCondition.connection_conditions
+      statusConnection.value = response.value
+    }
+    else if (responseCondition.connection_conditions != 'MOZNA_PODLACZAC')
+    {
+      statusConnection.value = ConnectionConditionsEnum.CantBeConnected
+    }
+    else
+    {
+      statusConnection.value = ConnectionConditionsEnum.HaventBeenFound
+    }
+
   }
 
   function handleDataSent(n:number):void {
@@ -84,10 +115,9 @@
 
 </script>
 <template>
-  <CanBeConnected></CanBeConnected>
 
-<div class="containerC">
 
+<div class="container">
   <div class="addressForm" v-if="!statusConnection">
     <label for="city">
       Miejscowość:
@@ -120,9 +150,10 @@
     <label for="house">
       Numer domu/budynku:
       <div class="user-address-forms">
-        <input class=" formInput multiselect__current " type="text" min="1" @input="getHouseNumber" v-model="selectedHouseNumber">
+        <input class=" formInput multiselect__current " type="text" min="1" v-model="selectedHouseNumber">
       </div>
     </label>
+    <button class="btn" @click="getHouseNumber">Dalej</button>
   </div>
   <div class="conditionsResults" v-else-if="statusConnection">
     <CanBeConnected @data-sent="handleDataSent" v-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">
@@ -146,13 +177,11 @@
 <style src="../node_modules/vue-multiselect/dist/vue-multiselect.css"></style>
 <style>
 
-  .containerC {
+  .container {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    bottom: 0;
   }
   .addressForm {
     display: flex;
@@ -172,6 +201,20 @@
 
   .formInput {
     width: 7rem;
+  }
+
+  .btn {
+    padding: 0.5rem;
+    border-radius: 12px;
+    border: 0;
+    width: 5rem;
+    font-size: 12px;
+  }
+  .btn:hover {
+    cursor: pointer;
+    padding: 0.7rem;
+    opacity: 0.9;
+    font-size: 16px;
   }
 
 

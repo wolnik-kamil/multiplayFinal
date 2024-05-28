@@ -20,14 +20,14 @@ async function generateCode() {
 
 </script>
 <template>
-  <div class="container">
+  <div class="con">
     <header>
       <h1>Konfigurator oferty</h1>
     </header>
     <main>
       <div class="offerConfiguration">
         <label for="net">
-          Prędkość internetu
+          <span>Prędkość internetu</span>
           <select v-model="net">
             <option value="01">500 mbps</option>
             <option value="02">800 mbps</option>
@@ -35,41 +35,41 @@ async function generateCode() {
           </select>
         </label>
         <label for="">
-          Łącze symetryczne
+          <span>Łącze symetryczne</span>
           <input v-model="symmetrical" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="">
-          Telefon
+          <span>Telefon</span>
           <input  v-model="VoIP" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="">
-          Telewizja
+          <span>Telewizja</span>
           <input v-model="tv" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="TV" v-if="tv != '0'">
-          TV
+          <span>TV</span>
           <select v-model="tv">
             <option value="1" >Multi TV</option>
             <option value="2">MultiMax TV</option>
           </select>
         </label>
         <label for="">
-          Canal+ Prestige
+          <span>Canal+ Prestige</span>
           <input  v-model="canalPlus" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="">
-          Multiroom
+          <span>Multiroom</span>
           <input  v-model="multiroom" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="" v-if="tv == '1'">
-          PVR M
+          <span>PVR M</span>
           <input  v-model="pvr" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="" v-else-if="tv == '2'">
-          PVR L
+          <span>PVR L</span>
           <input  v-model="pvr" true-value="1" false-value="0" type="checkbox">
         </label>
-        <button @click="generateCode">Approve</button>
+        <button class="btn" @click="generateCode">Dalej</button>
       </div>
     </main>
     <footer>
@@ -78,7 +78,7 @@ async function generateCode() {
   </div>
 </template>
 <style>
-.container {
+.con {
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -91,10 +91,20 @@ async function generateCode() {
   flex-direction: column;
 }
 
-.offerConfiguration input {
-  cursor: pointer;
-  background-color: #444;
-  padding: 20px;
+.offerConfiguration>label {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
 }
+
+.offerConfiguration>.btn {
+  margin: auto
+}
+
+
+
 </style>
 
