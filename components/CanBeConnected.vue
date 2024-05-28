@@ -1,17 +1,19 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
 
-const net = ref<string>('01')
-const tv = ref<string>('0')
+const net = ref<string>('1')
 const mesh = ref<string>('0')
 const symmetrical = ref<string>('0')
 const VoIP = ref<string>('0')
+const tv = ref<string>('0')
 const canalPlus = ref<string>('0')
 const multiroom = ref<string>('0')
 const pvr = ref<string>('0')
 
+
+const offerCode = ref<string>('')
+
 async function generateCode() {
-  const code = net.value + tv.value + mesh.value + symmetrical.value + VoIP.value + canalPlus.value + multiroom.value + pvr.value
-  console.log(code)
+  offerCode.value = net.value + mesh.value + symmetrical.value + VoIP.value + tv.value + canalPlus.value + multiroom.value + pvr.value + '000000'
 }
 
 
@@ -34,15 +36,15 @@ async function generateCode() {
         </label>
         <label for="">
           Łącze symetryczne
-          <input value="1" v-model="symmetrical" type="checkbox">
+          <input v-model="symmetrical" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="">
           Telefon
-          <input value="1" v-model="VoIP" type="checkbox">
+          <input  v-model="VoIP" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="">
           Telewizja
-          <input v-model="tv" value="0" type="checkbox">
+          <input v-model="tv" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="TV" v-if="tv != '0'">
           TV
@@ -53,19 +55,19 @@ async function generateCode() {
         </label>
         <label for="">
           Canal+ Prestige
-          <input  v-model="canalPlus" value="1" type="checkbox">
+          <input  v-model="canalPlus" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="">
           Multiroom
-          <input  v-model="multiroom" value="1" type="checkbox">
+          <input  v-model="multiroom" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="" v-if="tv == '1'">
           PVR M
-          <input  v-model="pvr" value="1" type="checkbox">
+          <input  v-model="pvr" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="" v-else-if="tv == '2'">
           PVR L
-          <input  v-model="pvr" value="1" type="checkbox">
+          <input  v-model="pvr" true-value="1" false-value="0" type="checkbox">
         </label>
         <button @click="generateCode"></button>
       </div>
