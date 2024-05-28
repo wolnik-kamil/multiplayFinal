@@ -69,7 +69,7 @@ async function generateCode() {
           PVR L
           <input  v-model="pvr" true-value="1" false-value="0" type="checkbox">
         </label>
-        <button @click="generateCode"></button>
+        <button @click="generateCode">Approve</button>
       </div>
     </main>
     <footer>
