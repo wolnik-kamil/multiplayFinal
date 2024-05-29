@@ -2,30 +2,51 @@
 import { useConnectionStore } from '@/stores/conditionsStore'
 
 const connectionStore = useConnectionStore()
-
-const connectionStatus = computed(() => connectionStore.connectionStatus)
+//const connectionStatus = computed(() => connectionStore.connectionStatus)
 const connectionConditions = computed(() => connectionStore.connectionConditions)
 
+const maxNet = computed(() => connectionConditions.value?.sale_internet_max_speed ?? 0);
+const isTv = computed(() => connectionConditions.value?.sale_iptv_access ?? false);
+
+
+
+// Data from offer config. it creates unique offer code which will be sent to the serwer after sending final form (getUserData())
 const net = ref<string>('01')
 const mesh = ref<string>('0')
 const symmetrical = ref<string>('0')
-const VoIP = ref<string>('0')
+const voip = ref<string>('0')
 const tv = ref<string>('0')
 const canalPlus = ref<string>('0')
 const multiroom = ref<string>('0')
 const pvr = ref<string>('0')
-
 const offerCode = ref<string>()
 
 async function generateCode() {
-  offerCode.value = net.value + mesh.value + symmetrical.value + VoIP.value + tv.value + canalPlus.value + multiroom.value + pvr.value + '000000'
+  offerCode.value = net.value + mesh.value + symmetrical.value + voip.value + tv.value + canalPlus.value + multiroom.value + pvr.value + '000000'
 }
-const name = ref<string>()
-const surname = ref<string>()
-const phone = ref<string>()
+
+// Validation for a phone number
+const phone = ref<string>('');
+const name = ref<string>('')
+const surname = ref<string>('')
+const validatePhoneInput = (event: Event) => {
+  let input = (event.target as HTMLInputElement).value;
+  input = input.replace(/\D/g, ''); // Usuwamy wszystkie niecyfrowe znaki
+  if (input.length > 9) {
+    input = input.slice(0, 9); // Ograniczamy długość do 9 cyfr
+  }
+  phone.value = input;
+};
+
+
+// Data from final form which is full name, phone number etc.
+
 
 const getUserData = async () => {
-
+  const userPhoneNumber = `${phone.value}`;
+  const userName = `${name.value}`;
+  const userSurname = `${surname.value}`;
+  console.log('Data:', userPhoneNumber, userName, userSurname);
 }
 
 </script>
@@ -34,16 +55,17 @@ const getUserData = async () => {
 
   <div class="con">
     <header>
-      <h1>Konfigurator oferty</h1>
+      <h1 v-if="!offerCode">Konfigurator oferty</h1>
+      <h1 v-else>Dane osobowe</h1>
     </header>
     <main>
       <div class="offerConfiguration" v-if="!offerCode">
         <label for="net">
           <span>Prędkość internetu</span>
           <select v-model="net">
-            <option value="01">500 mbps</option>
-            <option value="02">800 mbps</option>
-            <option value="03">1000 mbps</option>
+            <option v-if="maxNet >= 500" value="01">500 mbps</option>
+            <option v-if="maxNet >= 800" value="02">800 mbps</option>
+            <option v-if="maxNet == 1000" value="03">1000 mbps</option>
           </select>
         </label>
         <label for="">
@@ -52,9 +74,9 @@ const getUserData = async () => {
         </label>
         <label for="">
           <span>Telefon</span>
-          <input  v-model="VoIP" true-value="1" false-value="0" type="checkbox">
+          <input  v-model="voip" true-value="1" false-value="0" type="checkbox">
         </label>
-        <label for="">
+        <label for="" v-if="isTv">
           <span>Telewizja</span>
           <input v-model="tv" true-value="1" false-value="0" type="checkbox">
         </label>
@@ -96,8 +118,11 @@ const getUserData = async () => {
           </label>
 
           <label for="">
-            <span>Nr. telefonu</span>
-            <input v-model="phone" min="9" max="9" type="text" required>
+            <span>Telefon</span>
+            <div class="phone-input">
+              <input class="prefix" value="+48 " readonly>
+              <input class="number" v-model="phone" maxlength="9" type="text" @input="validatePhoneInput">
+            </div>
           </label>
           <button @click="getUserData" class="btn">Wyślij</button>
         </div>
@@ -137,6 +162,7 @@ const getUserData = async () => {
 .contactForm {
   display: flex;
   flex-direction: column;
+  width: max-content;
 }
 
 .contactForm>label {
@@ -146,12 +172,49 @@ const getUserData = async () => {
   box-sizing: border-box;
   display: flex;
   justify-content: space-between;
+  flex-direction: column;
+}
+
+
+.contactForm span {
+  font-size: 20px
+}
+
+.contactForm .phone-input {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.contactForm input {
+  padding: 12px 8px;
+  margin-right: 5px;
+  box-sizing: border-box;
+  font-size: larger;
+  border-radius: 25px;
+}
+
+.contactForm .phone-input .prefix {
+  width: 52px;
+  position: absolute;
+  left: 0;
+  padding: 12px 8px;
+  box-sizing: border-box;
+  border-radius: 25px 0 0 25px;
+  border-right: 1px solid #ccc;
+  font-size: larger;
+  color: #888;
+}
+
+.contactForm .phone-input .number {
+  flex: 1;
+  padding: 12px 0 12px 60px;
+  box-sizing: border-box;
 }
 
 .contactForm>.btn {
-  margin: auto
+  margin: auto;
 }
-
 
 </style>
 

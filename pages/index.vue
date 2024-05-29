@@ -154,6 +154,7 @@
 
 </script>
 <template>
+  <p>Zrobić naliczanie kosztów, dodatkowych opłat itd, stylizacja reszty formularzy, uproszczenie kodu, dodanie komentarzy tłumaczących kod</p>
 <div class="container">
   <div class="addressForm" v-if="!statusConnection">
     <label for="city">
