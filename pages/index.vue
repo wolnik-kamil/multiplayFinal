@@ -1,14 +1,13 @@
 <script setup lang="ts">
-  import {CanBeConnected, CantBeConnected, HaventBeenFound, Null, SpecialOffer} from '#components';
+  import {CanBeConnected, CantBeConnected, HaventBeenFound, SpecialOffer} from '#components';
   import Multiselect from 'vue-multiselect'
-
+  import { useConnectionStore } from '@/stores/conditionsStore'
 
   enum ConnectionConditionsEnum {
     CanBeConnected = 'MOZNA_PODLACZAC',
     CantBeConnected = 'NIE_PODLACZAMY',
     HaventBeenFound = 'nie_znaleziono',
     SpecialOffer = 'SPECJALNA_OFERTA',
-    Null = 'NULL',
   }
 
   //Zapis nazwy miasta i wysyłanie do pliku
@@ -24,7 +23,6 @@
   }
 
   const cities = ref<object[]>([])
-  const powiat = ref()
   const selectedCity = ref<SimcI | null>(null)
 
   async function getCities(cityName:string):Promise<void> {
@@ -61,7 +59,6 @@
     if(!response.value?.length) {
       return;
     }
-
     streets.value = response.value
     }
   }
@@ -72,49 +69,81 @@
     sale_iptv_access: string,
     connection_extra_payment: string,
     substructure_monthly_payment: string,
-    connection_days_needed: number
+    connection_days_needed: number,
+    address_pna: string
   }
-
+  const conditionsStore = useConnectionStore()
   const selectedHouseNumber = ref<number>()
   const statusConnection = ref()
 
   async function getHouseNumber() {
-    const {data: response}  = await useFetch<GeneralConnectionConditionsI[]>('/api/address/house', {
-      query: {houseNumber: selectedHouseNumber, ulic: selectedStreet.value?.ulic, terc: selectedCity.value?.terc, simc: selectedCity.value?.simc}
+    const {data: response} = await useFetch<GeneralConnectionConditionsI[]>('/api/address/house', {
+      query: {
+        houseNumber: selectedHouseNumber,
+        ulic: selectedStreet.value?.ulic,
+        terc: selectedCity.value?.terc,
+        simc: selectedCity.value?.simc,
+      }
     })
-    if(!response?.value) {
+    if (!response?.value) {
       return;
     }
-    console.log(response.value)
+
     const responseCondition = response.value.data
-    if  (responseCondition.connection_conditions == 'MOZNA_PODLACZAC' &&
-        (
-            responseCondition.sale_internet_max_speed < 1000 ||
-            responseCondition.sale_iptv_access == 'NIE' ||
-            responseCondition.connection_extra_payment != 0.00 ||
-            responseCondition.substructure_monthly_payment != 0.00 ||
-            responseCondition.connection_days_needed != 0
-        )
-    )
-    {
-      statusConnection.value = ConnectionConditionsEnum.SpecialOffer
-    }
-    else if (responseCondition.connection_conditions == 'MOZNA_PODLACZAC')
-    {
-      response.value = responseCondition.connection_conditions
-      statusConnection.value = response.value
-    }
-    else if
-    (responseCondition.connection_conditions != 'MOZNA_PODLACZAC')
-    {
+    console.log(response.value)
+    conditionsStore.setConnectionConditions(responseCondition)
+
+    if (responseCondition.connection_conditions == ConnectionConditionsEnum.CanBeConnected) {
+      statusConnection.value = responseCondition.connection_conditions
+    } else if
+    (responseCondition.connection_conditions == ConnectionConditionsEnum.HaventBeenFound) {
+      statusConnection.value = responseCondition.connection_conditions
+    } else if (responseCondition.connection_conditions != ConnectionConditionsEnum.CanBeConnected) {
       statusConnection.value = ConnectionConditionsEnum.CantBeConnected
     }
-    else
-    {
-      statusConnection.value = ConnectionConditionsEnum.HaventBeenFound
-    }
-
   }
+
+  // if(responseCondition.connection_conditions == 'MOZNA_PODLACZAC' &&
+  //     (
+  //         responseCondition.sale_internet_max_speed < 1000 ||
+  //         responseCondition.sale_iptv_access == 'NIE' ||
+  //         responseCondition.connection_extra_payment != 0.00 ||
+  //         responseCondition.substructure_monthly_payment != 0.00 ||
+  //         responseCondition.connection_days_needed != 0
+  //     ))
+
+  const zipCode = ref()
+  const zipCodeError = ref();
+
+  const handleZipCode = (event: Event) => {
+    let value = (event.target as HTMLInputElement).value.replace(/\D/g, ''); // user cannot type any 'Aa-Zz'
+    if (value.length > 2 && value.length < 6) {
+      value = value.replace(/(\d{2})(\d{1,3})/, '$1-$2'); // adding + sign after two numbers
+    }
+    zipCode.value = value; // new value
+  };
+
+  // const validateZipCode = () => {
+  //   if (!zipCode.value) {
+  //     zipCodeError.value = 'Sprawdź, czy wszystko wypełniłeś';
+  //   } else {
+  //     zipCodeError.value = null;
+  //   }
+  // };
+  //
+  const submitForm = () => {
+    //validateZipCode();
+
+    //if (!zipCodeError.value) {
+      getHouseNumber();
+    //}
+  };
+
+
+
+
+
+
 
   function handleDataSent(n:number):void {
     console.log(n)
@@ -150,18 +179,19 @@
     <label for="zip">
       Kod pocztowy:
       <div class="user-address-forms">
-        <input class=" formInput multiselect__current" type="text" placeholder="np. 44-190" min="1" required>
+        <input class=" formInput multiselect__current" type="text" placeholder="np. 44-190" v-model="zipCode" validate-on-blur max="6" @input="handleZipCode" maxlength="6">
       </div>
     </label>
 
     <label for="house">
       Numer domu/budynku:
       <div class="user-address-forms">
-        <input class=" formInput multiselect__current " type="text" min="1" v-model="selectedHouseNumber" required>
+        <input class=" formInput multiselect__current " type="text" min="1" v-model="selectedHouseNumber">
       </div>
     </label>
-    <button class="btn" @click="getHouseNumber">Dalej</button>
+    <button class="btn" @click="submitForm">Dalej</button>
   </div>
+
   <div class="conditionsResults" v-else-if="statusConnection">
     <CanBeConnected @data-sent="handleDataSent" v-if="statusConnection === ConnectionConditionsEnum.CanBeConnected">
     </CanBeConnected>
@@ -175,10 +205,9 @@
     <HaventBeenFound v-else-if="statusConnection === ConnectionConditionsEnum.HaventBeenFound">
     </HaventBeenFound>
 
-    <Null v-else-if="statusConnection === ConnectionConditionsEnum.Null">
-    </Null>
   </div>
 </div>
+  <span v-if="zipCodeError" class="error-message">{{ zipCodeError }}</span>
 
 
 

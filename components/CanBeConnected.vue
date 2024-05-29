@@ -1,6 +1,12 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
+import { useConnectionStore } from '@/stores/conditionsStore'
 
-const net = ref<string>('1')
+const connectionStore = useConnectionStore()
+
+const connectionStatus = computed(() => connectionStore.connectionStatus)
+const connectionConditions = computed(() => connectionStore.connectionConditions)
+
+const net = ref<string>('01')
 const mesh = ref<string>('0')
 const symmetrical = ref<string>('0')
 const VoIP = ref<string>('0')
@@ -9,23 +15,29 @@ const canalPlus = ref<string>('0')
 const multiroom = ref<string>('0')
 const pvr = ref<string>('0')
 
-
-const offerCode = ref<string>('')
+const offerCode = ref<string>()
 
 async function generateCode() {
   offerCode.value = net.value + mesh.value + symmetrical.value + VoIP.value + tv.value + canalPlus.value + multiroom.value + pvr.value + '000000'
 }
+const name = ref<string>()
+const surname = ref<string>()
+const phone = ref<string>()
 
+const getUserData = async () => {
 
+}
 
 </script>
 <template>
+
+
   <div class="con">
     <header>
       <h1>Konfigurator oferty</h1>
     </header>
     <main>
-      <div class="offerConfiguration">
+      <div class="offerConfiguration" v-if="!offerCode">
         <label for="net">
           <span>Prędkość internetu</span>
           <select v-model="net">
@@ -71,6 +83,25 @@ async function generateCode() {
         </label>
         <button class="btn" @click="generateCode">Dalej</button>
       </div>
+      <div v-else class="sendUserData">
+        <div class="contactForm">
+          <label for="">
+            <span>Imię</span>
+            <input v-model="name" type="text" required>
+          </label>
+
+          <label for="">
+            <span>Nazwisko</span>
+            <input v-model="surname" type="text" required>
+          </label>
+
+          <label for="">
+            <span>Nr. telefonu</span>
+            <input v-model="phone" min="9" max="9" type="text" required>
+          </label>
+          <button @click="getUserData" class="btn">Wyślij</button>
+        </div>
+      </div>
     </main>
     <footer>
 
@@ -103,7 +134,23 @@ async function generateCode() {
 .offerConfiguration>.btn {
   margin: auto
 }
+.contactForm {
+  display: flex;
+  flex-direction: column;
+}
 
+.contactForm>label {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+}
+
+.contactForm>.btn {
+  margin: auto
+}
 
 
 </style>
