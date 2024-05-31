@@ -1,34 +1,120 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
-import { useConnectionStore } from '@/stores/conditionsStore'
+import { useConnectionStore } from '@/stores/conditionsStore';
 
-const connectionStore = useConnectionStore()
-//const connectionStatus = computed(() => connectionStore.connectionStatus)
-const connectionConditions = computed(() => connectionStore.connectionConditions)
 
+// Conditions from response
+const connectionStore = useConnectionStore();
+//const connectionStatus = computed(() => connectionStore.connectionStatus);
+const connectionConditions = computed(() => connectionStore.connectionConditions);
 const maxNet = computed(() => connectionConditions.value?.sale_internet_max_speed ?? 0);
 const isTv = computed(() => connectionConditions.value?.sale_iptv_access ?? false);
+const tvChecked = ref(false);
 
 
 
-// Data from offer config. it creates unique offer code which will be sent to the serwer after sending final form (getUserData())
-const net = ref<string>('01')
-const mesh = ref<string>('0')
-const symmetrical = ref<string>('0')
-const voip = ref<string>('0')
-const tv = ref<string>('0')
-const canalPlus = ref<string>('0')
-const multiroom = ref<string>('0')
-const pvr = ref<string>('0')
-const offerCode = ref<string>()
+//Price conditions of an offer
+type ConditionType = {
+  [key: string]: number
+}
 
+// Conditions for net speed selection
+const netPriceCondition: ConditionType = {
+  '01': 10,
+  '02': 15,
+  '03': 20
+};
+
+// Conditions for symmetrical connection selection
+const symmetricalCondition: ConditionType = {
+  '0': 0,
+  '1': 20
+};
+
+// Conditions for VoIP selection
+const voipCondition: ConditionType = {
+  '0': 0,
+  '1': 5
+};
+
+// Conditions for TV selection
+const tvCondition: ConditionType = {
+  '0': 0,
+  '1': 10,
+  '2': 20
+};
+
+// Conditions for Canal Plus selection
+const canalPlusCondition: ConditionType = {
+  '0': 0,
+  '1': 15
+};
+
+// Conditions for Multiroom selection
+const multiroomCondition: ConditionType = {
+  '0': 0,
+  '1': 10
+};
+
+// Conditions for PVR selection
+const pvrCondition: ConditionType = {
+  '0': 0,
+  '1': 5
+};
+
+// Data from offer config. it creates unique offer code which will be sent to the server after sending final form (getUserData())
+const x = ref<object>({
+  net: ref<string>('01'),
+  mesh: <string>('0'),
+  symmetrical: <string>'0',
+  voip: <string>'0',
+  tv: <string>'0',
+  canalPlus: <string>'0',
+  multiroom: <string>'0',
+  pvr: <string>'0'
+})
+const offerCode = ref<string>('')
+
+
+//Clearing tv value after unchecking tv input
+watch(tvChecked, (newValue) => {
+  if(!newValue) {
+    tv.value = '0'
+    pvr.value = '0'
+  }
+})
+
+// Prices based on the price conditions
+const price = computed(() => {
+  const netPrice = netPriceCondition[net.value] ?? 0;
+  const symmetricalPrice = symmetricalCondition[symmetrical.value] ?? 0;
+  const voipPrice = voipCondition[voip.value] ?? 0;
+  const tvPrice = tvCondition[tv.value] ?? 0;
+  const canalPlusPrice = canalPlusCondition[canalPlus.value] ?? 0;
+  const multiroomPrice = multiroomCondition[multiroom.value] ?? 0;
+  const pvrPrice = pvrCondition[pvr.value] ?? 0;
+
+  return netPrice + symmetricalPrice + voipPrice + tvPrice + canalPlusPrice + multiroomPrice + pvrPrice;
+});
+
+
+//Generating offer code after submitting form
 async function generateCode() {
-  offerCode.value = net.value + mesh.value + symmetrical.value + voip.value + tv.value + canalPlus.value + multiroom.value + pvr.value + '000000'
+  offerCode.value =
+        net.value
+      + mesh.value
+      + symmetrical.value
+      + voip.value
+      + tv.value
+      + canalPlus.value
+      + multiroom.value
+      + pvr.value
+      + '000000'
 }
 
 // Validation for a phone number
 const phone = ref<string>('');
-const name = ref<string>('')
-const surname = ref<string>('')
+const name = ref<string>('');
+const surname = ref<string>('');
 const validatePhoneInput = (event: Event) => {
   let input = (event.target as HTMLInputElement).value;
   input = input.replace(/\D/g, ''); // Usuwamy wszystkie niecyfrowe znaki
@@ -38,16 +124,15 @@ const validatePhoneInput = (event: Event) => {
   phone.value = input;
 };
 
-
 // Data from final form which is full name, phone number etc.
-
-
 const getUserData = async () => {
   const userPhoneNumber = `${phone.value}`;
   const userName = `${name.value}`;
   const userSurname = `${surname.value}`;
-  console.log('Data:', userPhoneNumber, userName, userSurname);
-}
+  console.log('Data:', userPhoneNumber, userName, userSurname, offerCode.value);
+};
+
+
 
 </script>
 <template>
@@ -58,66 +143,66 @@ const getUserData = async () => {
       <h1 v-if="!offerCode">Konfigurator oferty</h1>
       <h1 v-else>Dane osobowe</h1>
     </header>
+    <div class="price">{{price}}</div>
     <main>
       <div class="offerConfiguration" v-if="!offerCode">
-        <label for="net">
+        <label for="netId">
           <span>Prędkość internetu</span>
-          <select v-model="net">
+          <select id="netId" v-model="net">
             <option v-if="maxNet >= 500" value="01">500 mbps</option>
             <option v-if="maxNet >= 800" value="02">800 mbps</option>
             <option v-if="maxNet == 1000" value="03">1000 mbps</option>
           </select>
         </label>
-        <label for="">
+        <label for="symmetricalId">
           <span>Łącze symetryczne</span>
-          <input v-model="symmetrical" true-value="1" false-value="0" type="checkbox">
+          <input id="symmetricalId" v-model="symmetrical" true-value="1" false-value="0" type="checkbox">
         </label>
-        <label for="">
+        <label for="voipId">
           <span>Telefon</span>
-          <input  v-model="voip" true-value="1" false-value="0" type="checkbox">
+          <input id="voipId" v-model="voip" true-value="1" false-value="0" type="checkbox">
         </label>
-        <label for="" v-if="isTv">
+        <label for="isTvId" v-if="isTv">
           <span>Telewizja</span>
-          <input v-model="tv" true-value="1" false-value="0" type="checkbox">
-        </label>
-        <label for="TV" v-if="tv != '0'">
-          <span>TV</span>
-          <select v-model="tv">
-            <option value="1" >Multi TV</option>
+          <input id="isTvId" v-model="tvChecked" type="checkbox">
+          <select v-model="tv" :disabled="!tvChecked">
+            <option :value="0" disabled hidden>Wybierz pakiet</option>
+            <option value="1">Multi TV</option>
             <option value="2">MultiMax TV</option>
           </select>
         </label>
-        <label for="">
+        <label for="canalPlusId">
           <span>Canal+ Prestige</span>
-          <input  v-model="canalPlus" true-value="1" false-value="0" type="checkbox">
+          <input id="canalPlusId" v-model="canalPlus" true-value="1" false-value="0" type="checkbox">
         </label>
-        <label for="">
+        <label for="multiroomId">
           <span>Multiroom</span>
-          <input  v-model="multiroom" true-value="1" false-value="0" type="checkbox">
+          <input id="multiroomId" v-model="multiroom" true-value="1" false-value="0" type="checkbox">
         </label>
-        <label for="" v-if="tv == '1'">
+        <label for="pvrMId" v-if="tv == '1'">
           <span>PVR M</span>
-          <input  v-model="pvr" true-value="1" false-value="0" type="checkbox">
+          <input id="pvrMId" v-model="pvr" true-value="1" false-value="0" type="checkbox">
         </label>
-        <label for="" v-else-if="tv == '2'">
+        <label for="pvrLId" v-else-if="tv == '2'">
           <span>PVR L</span>
-          <input  v-model="pvr" true-value="1" false-value="0" type="checkbox">
+          <input id="pvrLId" v-model="pvr" true-value="1" false-value="0" type="checkbox">
         </label>
+
         <button class="btn" @click="generateCode">Dalej</button>
       </div>
       <div v-else class="sendUserData">
         <div class="contactForm">
-          <label for="">
+          <label for="Id">
             <span>Imię</span>
             <input v-model="name" type="text" required>
           </label>
 
-          <label for="">
+          <label for="Id">
             <span>Nazwisko</span>
             <input v-model="surname" type="text" required>
           </label>
 
-          <label for="">
+          <label for="Id">
             <span>Telefon</span>
             <div class="phone-input">
               <input class="prefix" value="+48 " readonly>
@@ -145,6 +230,7 @@ const getUserData = async () => {
 .offerConfiguration {
   display: flex;
   flex-direction: column;
+  font-size: 24px
 }
 
 .offerConfiguration>label {
@@ -154,6 +240,7 @@ const getUserData = async () => {
   box-sizing: border-box;
   display: flex;
   justify-content: space-between;
+  border: 1px solid black
 }
 
 .offerConfiguration>.btn {

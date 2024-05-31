@@ -112,31 +112,32 @@
   //         responseCondition.connection_days_needed != 0
   //     ))
 
-  const zipCode = ref()
-  const zipCodeError = ref();
+  const selectedZipCode = ref()
+  const formError = ref();
 
   const handleZipCode = (event: Event) => {
-    let value = (event.target as HTMLInputElement).value.replace(/\D/g, ''); // user cannot type any 'Aa-Zz'
+    let value = (event.target as HTMLInputElement).value.replace(/\D/g, ''); // user can only type int
     if (value.length > 2 && value.length < 6) {
-      value = value.replace(/(\d{2})(\d{1,3})/, '$1-$2'); // adding + sign after two numbers
+      value = value.replace(/(\d{2})(\d{1,3})/, '$1-$2'); // adding - sign after two numbers
     }
-    zipCode.value = value; // new value
+    selectedZipCode.value = value; // new value
   };
 
-  // const validateZipCode = () => {
-  //   if (!zipCode.value) {
-  //     zipCodeError.value = 'Sprawdź, czy wszystko wypełniłeś';
-  //   } else {
-  //     zipCodeError.value = null;
-  //   }
-  // };
-  //
-  const submitForm = () => {
-    //validateZipCode();
+  const validateForm = () => {
+    if (!selectedCity.value || !selectedStreet.value || !selectedHouseNumber.value || !selectedZipCode.value) {
+      formError.value = 'Sprawdź, czy wszystko wypełniłeś';
+      alert(formError.value)
+    } else {
+      formError.value = null;
+    }
+  };
 
-    //if (!zipCodeError.value) {
+  const submitForm = () => {
+    validateForm();
+
+    if (!formError.value) {
       getHouseNumber();
-    //}
+    }
   };
 
 
@@ -154,7 +155,7 @@
 
 </script>
 <template>
-  <p>Zrobić naliczanie kosztów, dodatkowych opłat itd, stylizacja reszty formularzy, uproszczenie kodu, dodanie komentarzy tłumaczących kod</p>
+<!--  Zrobić naliczanie kosztów, dodatkowych opłat itd, stylizacja reszty formularzy, uproszczenie kodu, dodanie komentarzy tłumaczących kod-->
 <div class="container">
   <div class="addressForm" v-if="!statusConnection">
     <label for="city">
@@ -180,7 +181,7 @@
     <label for="zip">
       Kod pocztowy:
       <div class="user-address-forms">
-        <input class=" formInput multiselect__current" type="text" placeholder="np. 44-190" v-model="zipCode" validate-on-blur max="6" @input="handleZipCode" maxlength="6">
+        <input class=" formInput multiselect__current" type="text" placeholder="np. 44-190" v-model="selectedZipCode" validate-on-blur max="6" @input="handleZipCode" maxlength="6">
       </div>
     </label>
 
@@ -208,7 +209,6 @@
 
   </div>
 </div>
-  <span v-if="zipCodeError" class="error-message">{{ zipCodeError }}</span>
 
 
 
