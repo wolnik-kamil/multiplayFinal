@@ -11,105 +11,107 @@ const isTv = computed(() => connectionConditions.value?.sale_iptv_access ?? fals
 const tvChecked = ref(false);
 
 
-
-//Price conditions of an offer
-type ConditionType = {
-  [key: string]: number
+// Interface for an object below
+interface OfferOptionsI {
+  net: string;
+  mesh: string;
+  symmetrical: string;
+  voip: string;
+  tv: string;
+  canalPlus: string;
+  multiroom: string;
+  pvr: string;
 }
 
-// Conditions for net speed selection
-const netPriceCondition: ConditionType = {
-  '01': 10,
-  '02': 15,
-  '03': 20
-};
 
-// Conditions for symmetrical connection selection
-const symmetricalCondition: ConditionType = {
-  '0': 0,
-  '1': 20
-};
-
-// Conditions for VoIP selection
-const voipCondition: ConditionType = {
-  '0': 0,
-  '1': 5
-};
-
-// Conditions for TV selection
-const tvCondition: ConditionType = {
-  '0': 0,
-  '1': 10,
-  '2': 20
-};
-
-// Conditions for Canal Plus selection
-const canalPlusCondition: ConditionType = {
-  '0': 0,
-  '1': 15
-};
-
-// Conditions for Multiroom selection
-const multiroomCondition: ConditionType = {
-  '0': 0,
-  '1': 10
-};
-
-// Conditions for PVR selection
-const pvrCondition: ConditionType = {
-  '0': 0,
-  '1': 5
-};
-
-// Data from offer config. it creates unique offer code which will be sent to the server after sending final form (getUserData())
-const x = ref<object>({
-  net: ref<string>('01'),
-  mesh: <string>('0'),
-  symmetrical: <string>'0',
-  voip: <string>'0',
-  tv: <string>'0',
-  canalPlus: <string>'0',
-  multiroom: <string>'0',
-  pvr: <string>'0'
+//Offer Variables' object
+const offerOptions = ref({
+  net: ref('01'),
+  mesh: ('0'),
+  symmetrical: '0',
+  voip: '0',
+  tv: '0',
+  canalPlus: '0',
+  multiroom: '0',
+  pvr: '0'
 })
-const offerCode = ref<string>('')
+
+
+// Conditions based on what user selected
+type ConditionType = {
+  [key: string]: {
+    [key: string]: number
+  }
+};
+
+const priceConditions: ConditionType = {
+  net: {
+    '01': 40,
+    '02': 50,
+    '03': 60
+  },
+  symmetrical: {
+    '0': 0,
+    '1': 15
+  },
+  voip: {
+    '0': 0,
+    '1': 15
+  },
+  tv: {
+    '0': 0,
+    '1': 10,
+    '2': 20
+  },
+  canalPlus: {
+    '0': 0,
+    '1': 15
+  },
+  multiroom: {
+    '0': 0,
+    '1': 10
+  },
+  pvr: {
+    '0': 0,
+    '1': 5
+  }
+};
 
 
 //Clearing tv value after unchecking tv input
 watch(tvChecked, (newValue) => {
   if(!newValue) {
-    tv.value = '0'
-    pvr.value = '0'
+    offerOptions.value.tv = '0'
+    offerOptions.value.pvr= '0'
   }
 })
 
-// Prices based on the price conditions
-const price = computed(() => {
-  const netPrice = netPriceCondition[net.value] ?? 0;
-  const symmetricalPrice = symmetricalCondition[symmetrical.value] ?? 0;
-  const voipPrice = voipCondition[voip.value] ?? 0;
-  const tvPrice = tvCondition[tv.value] ?? 0;
-  const canalPlusPrice = canalPlusCondition[canalPlus.value] ?? 0;
-  const multiroomPrice = multiroomCondition[multiroom.value] ?? 0;
-  const pvrPrice = pvrCondition[pvr.value] ?? 0;
 
-  return netPrice + symmetricalPrice + voipPrice + tvPrice + canalPlusPrice + multiroomPrice + pvrPrice;
+// Price based on the price conditions
+const price = computed(() => {
+  return Object.entries(offerOptions.value)
+      .reduce((totalPrice, [key, value]) => {
+        if (priceConditions[key]?.[value] !== undefined) {
+          totalPrice += priceConditions[key][value];
+        }
+        return totalPrice;
+      }, 0);
 });
 
 
 //Generating offer code after submitting form
-async function generateCode() {
-  offerCode.value =
-        net.value
-      + mesh.value
-      + symmetrical.value
-      + voip.value
-      + tv.value
-      + canalPlus.value
-      + multiroom.value
-      + pvr.value
-      + '000000'
+const offerCode = ref<string>('')
+async function generateCode(offerOptions: OfferOptionsI): Promise<void> {
+  let code = '';
+  for (const key in offerOptions) {
+    if (Object.prototype.hasOwnProperty.call(offerOptions, key)) {
+      code += offerOptions[key as keyof OfferOptionsI];
+    }
+  }
+  code += '000000';
+  offerCode.value = code;
 }
+
 
 // Validation for a phone number
 const phone = ref<string>('');
@@ -124,6 +126,7 @@ const validatePhoneInput = (event: Event) => {
   phone.value = input;
 };
 
+
 // Data from final form which is full name, phone number etc.
 const getUserData = async () => {
   const userPhoneNumber = `${phone.value}`;
@@ -132,23 +135,18 @@ const getUserData = async () => {
   console.log('Data:', userPhoneNumber, userName, userSurname, offerCode.value);
 };
 
-
-
 </script>
 <template>
-
-
   <div class="con">
     <header>
       <h1 v-if="!offerCode">Konfigurator oferty</h1>
       <h1 v-else>Dane osobowe</h1>
     </header>
-    <div class="price">{{price}}</div>
     <main>
       <div class="offerConfiguration" v-if="!offerCode">
         <label for="netId">
           <span>Prędkość internetu</span>
-          <select id="netId" v-model="net">
+          <select id="netId" v-model="offerOptions.net">
             <option v-if="maxNet >= 500" value="01">500 mbps</option>
             <option v-if="maxNet >= 800" value="02">800 mbps</option>
             <option v-if="maxNet == 1000" value="03">1000 mbps</option>
@@ -156,16 +154,16 @@ const getUserData = async () => {
         </label>
         <label for="symmetricalId">
           <span>Łącze symetryczne</span>
-          <input id="symmetricalId" v-model="symmetrical" true-value="1" false-value="0" type="checkbox">
+          <input id="symmetricalId" v-model="offerOptions.symmetrical" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="voipId">
           <span>Telefon</span>
-          <input id="voipId" v-model="voip" true-value="1" false-value="0" type="checkbox">
+          <input id="voipId" v-model="offerOptions.voip" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="isTvId" v-if="isTv">
           <span>Telewizja</span>
           <input id="isTvId" v-model="tvChecked" type="checkbox">
-          <select v-model="tv" :disabled="!tvChecked">
+          <select v-model="offerOptions.tv" :disabled="!tvChecked">
             <option :value="0" disabled hidden>Wybierz pakiet</option>
             <option value="1">Multi TV</option>
             <option value="2">MultiMax TV</option>
@@ -173,22 +171,22 @@ const getUserData = async () => {
         </label>
         <label for="canalPlusId">
           <span>Canal+ Prestige</span>
-          <input id="canalPlusId" v-model="canalPlus" true-value="1" false-value="0" type="checkbox">
+          <input id="canalPlusId" v-model="offerOptions.canalPlus" true-value="1" false-value="0" type="checkbox">
         </label>
         <label for="multiroomId">
           <span>Multiroom</span>
-          <input id="multiroomId" v-model="multiroom" true-value="1" false-value="0" type="checkbox">
+          <input id="multiroomId" v-model="offerOptions.multiroom" true-value="1" false-value="0" type="checkbox">
         </label>
-        <label for="pvrMId" v-if="tv == '1'">
+        <label for="pvrMId" v-if="offerOptions.tv == '1'">
           <span>PVR M</span>
-          <input id="pvrMId" v-model="pvr" true-value="1" false-value="0" type="checkbox">
+          <input id="pvrMId" v-model="offerOptions.pvr" true-value="1" false-value="0" type="checkbox">
         </label>
-        <label for="pvrLId" v-else-if="tv == '2'">
+        <label for="pvrLId" v-else-if="offerOptions.tv == '2'">
           <span>PVR L</span>
-          <input id="pvrLId" v-model="pvr" true-value="1" false-value="0" type="checkbox">
+          <input id="pvrLId" v-model="offerOptions.pvr" true-value="1" false-value="0" type="checkbox">
         </label>
-
-        <button class="btn" @click="generateCode">Dalej</button>
+        <div class="price">Kwota całkowita: {{price}}.00 zł</div>
+        <button class="btn" @click="generateCode(offerOptions)">Dalej</button>
       </div>
       <div v-else class="sendUserData">
         <div class="contactForm">
@@ -202,13 +200,14 @@ const getUserData = async () => {
             <input v-model="surname" type="text" required>
           </label>
 
-          <label for="Id">
+          <label for="Id" class="phone-label">
             <span>Telefon</span>
             <div class="phone-input">
               <input class="prefix" value="+48 " readonly>
               <input class="number" v-model="phone" maxlength="9" type="text" @input="validatePhoneInput">
             </div>
           </label>
+
           <button @click="getUserData" class="btn">Wyślij</button>
         </div>
       </div>
@@ -220,88 +219,66 @@ const getUserData = async () => {
 </template>
 <style>
 .con {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  width: max-content;
-  margin: auto;
+  @apply flex justify-center flex-col w-max mx-auto;
+
 }
 
+
 .offerConfiguration {
-  display: flex;
-  flex-direction: column;
-  font-size: 24px
+  @apply flex flex-col text-2xl
 }
 
 .offerConfiguration>label {
-  width: 100%;
-  padding: 12px 20px;
-  margin: 8px 0;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: space-between;
-  border: 1px solid black
+  @apply w-full py-3 px-5 my-2 flex justify-between rounded-full border border-black;
 }
 
-.offerConfiguration>.btn {
-  margin: auto
+.price {
+  @apply p-2 text-lg;
 }
+
 .contactForm {
-  display: flex;
-  flex-direction: column;
-  width: max-content;
+  @apply flex flex-col w-max;
 }
 
-.contactForm>label {
-  width: 100%;
-  padding: 12px 20px;
-  margin: 8px 0;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
+.contactForm > label {
+  @apply w-full py-3 px-5 my-2 flex justify-between flex-col;
 }
 
 
 .contactForm span {
-  font-size: 20px
+  @apply text-xl;
+}
+
+.contactForm>label>input {
+  @apply text-center
+}
+
+.contactForm label:last-child {
+  @apply w-1/2
+}
+
+.contactForm>input:nth-child(2) {
+  @apply text-center
 }
 
 .contactForm .phone-input {
-  display: flex;
-  align-items: center;
-  position: relative;
+  @apply flex items-center relative;
 }
 
 .contactForm input {
-  padding: 12px 8px;
-  margin-right: 5px;
-  box-sizing: border-box;
-  font-size: larger;
-  border-radius: 25px;
+  @apply py-3 px-2 mr-2 text-lg border rounded-full;
 }
 
 .contactForm .phone-input .prefix {
-  width: 52px;
-  position: absolute;
-  left: 0;
-  padding: 12px 8px;
-  box-sizing: border-box;
-  border-radius: 25px 0 0 25px;
-  border-right: 1px solid #ccc;
-  font-size: larger;
-  color: #888;
+  @apply w-1/6 absolute inset-y-0 left-0 flex items-center px-1 border border-r border-gray-300 rounded-r-lg;
 }
 
 .contactForm .phone-input .number {
-  flex: 1;
-  padding: 12px 0 12px 60px;
-  box-sizing: border-box;
+  @apply flex-1 py-3 pl-16 border-l-0 text-lg;
 }
 
-.contactForm>.btn {
-  margin: auto;
+.btn {
+  @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 w-12 m-auto rounded-full
 }
-
 </style>
 
