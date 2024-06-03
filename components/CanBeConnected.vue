@@ -7,7 +7,10 @@ const connectionStore = useConnectionStore();
 //const connectionStatus = computed(() => connectionStore.connectionStatus);
 const connectionConditions = computed(() => connectionStore.connectionConditions);
 const maxNet = computed(() => connectionConditions.value?.sale_internet_max_speed ?? 0);
-const isTv = computed(() => connectionConditions.value?.sale_iptv_access ?? false);
+const isTv = true; //computed(() => connectionConditions.value?.sale_iptv_access ?? false);
+const connectionExtraPayment = computed(() => connectionConditions.value?.connection_extra_payment ?? '0.00');
+const substructureExtraPayment = computed(() => connectionConditions.value?.substructure_monthly_payment ?? '0.00');
+const daysToConnect = computed(() => connectionConditions.value?.connection_days_needed ?? 0);
 const tvChecked = ref(false);
 
 
@@ -117,23 +120,45 @@ async function generateCode(offerOptions: OfferOptionsI): Promise<void> {
 const phone = ref<string>('');
 const name = ref<string>('');
 const surname = ref<string>('');
-const validatePhoneInput = (event: Event) => {
-  let input = (event.target as HTMLInputElement).value;
-  input = input.replace(/\D/g, ''); // Usuwamy wszystkie niecyfrowe znaki
-  if (input.length > 9) {
-    input = input.slice(0, 9); // Ograniczamy długość do 9 cyfr
-  }
-  phone.value = input;
-};
-
+const formError = ref();
 
 // Data from final form which is full name, phone number etc.
 const getUserData = async () => {
   const userPhoneNumber = `${phone.value}`;
   const userName = `${name.value}`;
   const userSurname = `${surname.value}`;
-  console.log('Data:', userPhoneNumber, userName, userSurname, offerCode.value);
+  const userOfferCode = `${offerCode.value}`;
+  const clientCompleteData = {
+    clientName: userName,
+    clientSurname: userSurname,
+    clientPhoneNumber: userPhoneNumber,
+    clientOfferCode: offerCode.value,
+
+  }
+  console.log(clientCompleteData);
 };
+
+
+//validation function for contact form
+const validateForm = () => {
+  if (!name.value || !surname.value || !phone.value) {
+    formError.value = 'Sprawdź, czy wszystko wypełniłeś';
+    alert(formError.value)
+  } else {
+    formError.value = null;
+  }
+};
+
+
+//Checking if data is set or not
+const submitForm = () => {
+  validateForm();
+
+  if (!formError.value) {
+    getUserData();
+  }
+};
+
 
 </script>
 <template>
@@ -144,12 +169,12 @@ const getUserData = async () => {
     </header>
     <main>
       <div class="offerConfiguration" v-if="!offerCode">
-        <label for="netId">
+        <label for="netId" class="select selectPack">
           <span>Prędkość internetu</span>
           <select id="netId" v-model="offerOptions.net">
-            <option v-if="maxNet >= 500" value="01">500 mbps</option>
-            <option v-if="maxNet >= 800" value="02">800 mbps</option>
-            <option v-if="maxNet == 1000" value="03">1000 mbps</option>
+            <option value="01">500 Mb/s</option>
+            <option v-if="maxNet >= 800" value="02">800 Mb/s</option>
+            <option v-if="maxNet == 1000" value="03">1000 Mb/s</option>
           </select>
         </label>
         <label for="symmetricalId">
@@ -163,7 +188,9 @@ const getUserData = async () => {
         <label for="isTvId" v-if="isTv">
           <span>Telewizja</span>
           <input id="isTvId" v-model="tvChecked" type="checkbox">
-          <select v-model="offerOptions.tv" :disabled="!tvChecked">
+        </label>
+        <label for="tvId" v-if="tvChecked" class="selectPack">
+          <select v-model="offerOptions.tv" :disabled="!tvChecked" >
             <option :value="0" disabled hidden>Wybierz pakiet</option>
             <option value="1">Multi TV</option>
             <option value="2">MultiMax TV</option>
@@ -191,24 +218,21 @@ const getUserData = async () => {
       <div v-else class="sendUserData">
         <div class="contactForm">
           <label for="Id">
-            <span>Imię</span>
-            <input v-model="name" type="text" required>
+            <input placeholder="Imię" v-model="name" type="text" required>
           </label>
 
           <label for="Id">
-            <span>Nazwisko</span>
-            <input v-model="surname" type="text" required>
+            <input placeholder="Nazwiwsko" v-model="surname" type="text" required>
           </label>
 
           <label for="Id" class="phone-label">
-            <span>Telefon</span>
             <div class="phone-input">
               <input class="prefix" value="+48 " readonly>
-              <input class="number" v-model="phone" maxlength="9" type="text" @input="validatePhoneInput">
+              <input class="number" placeholder="Numer telefonu" v-model="phone" minlength="9" maxlength="9" type="text">
             </div>
           </label>
 
-          <button @click="getUserData" class="btn">Wyślij</button>
+          <button @click="submitForm" class="btn">Wyślij</button>
         </div>
       </div>
     </main>
@@ -219,46 +243,53 @@ const getUserData = async () => {
 </template>
 <style>
 .con {
-  @apply flex justify-center flex-col w-max mx-auto;
-
+  @apply flex justify-center flex-col w-80 mx-auto;
 }
-
 
 .offerConfiguration {
-  @apply flex flex-col text-2xl
+  @apply flex flex-col text-2xl;
 }
 
-.offerConfiguration>label {
-  @apply w-full py-3 px-5 my-2 flex justify-between rounded-full border border-black;
+.offerConfiguration label {
+  @apply w-full py-3 my-2 px-5 flex justify-between border border-collapse;
+}
+
+.offerConfiguration label:first-child {
+  @apply text-center;
 }
 
 .price {
-  @apply p-2 text-lg;
+  @apply p-2 text-lg m-auto;
 }
+
+.select {
+  @apply flex flex-col;
+}
+
+.selectPack select {
+  @apply border m-auto;
+}
+
+
 
 .contactForm {
   @apply flex flex-col w-max;
 }
 
 .contactForm > label {
-  @apply w-full py-3 px-5 my-2 flex justify-between flex-col;
+  @apply w-full py-3 px-5 flex justify-between flex-col;
 }
-
 
 .contactForm span {
   @apply text-xl;
 }
 
-.contactForm>label>input {
-  @apply text-center
-}
-
 .contactForm label:last-child {
-  @apply w-1/2
+  @apply w-1/2;
 }
 
 .contactForm>input:nth-child(2) {
-  @apply text-center
+  @apply text-center;
 }
 
 .contactForm .phone-input {
@@ -266,11 +297,11 @@ const getUserData = async () => {
 }
 
 .contactForm input {
-  @apply py-3 px-2 mr-2 text-lg border rounded-full;
+  @apply py-3 px-2 mr-2 text-lg border text-center;
 }
 
 .contactForm .phone-input .prefix {
-  @apply w-1/6 absolute inset-y-0 left-0 flex items-center px-1 border border-r border-gray-300 rounded-r-lg;
+  @apply w-1/6 absolute inset-y-0 left-0 flex items-center px-1 border border-r border-gray-300 ;
 }
 
 .contactForm .phone-input .number {

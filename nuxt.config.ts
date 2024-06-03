@@ -17,8 +17,23 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  modules: [
-    '@pinia/nuxt',
-  ],
+  security: {
+    headers: {
+      crossOriginEmbedderPolicy: process.env.NODE_ENV === 'development' ? 'unsafe-none' : 'require-corp',
+    },
+  },
+  // limit 10 zapytan
+  routeRules: {
+    '@/server/api/address/house/index.ts': {
+      security: {
+        rateLimiter: {
+          tokensPerInterval: 3,
+          interval: 10000,
+          headers: true,
+        }
+      }
+    }
+  },
+  modules: ['@pinia/nuxt', 'nuxt-security'],
 
 });

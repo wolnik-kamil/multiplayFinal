@@ -93,24 +93,19 @@
     console.log(response.value)
     conditionsStore.setConnectionConditions(responseCondition)
 
-    if (responseCondition.connection_conditions == ConnectionConditionsEnum.CanBeConnected) {
+    if (responseCondition.connection_conditions == ConnectionConditionsEnum.CanBeConnected)
+    {
       statusConnection.value = responseCondition.connection_conditions
     } else if
-    (responseCondition.connection_conditions == ConnectionConditionsEnum.HaventBeenFound) {
+    (responseCondition.connection_conditions == ConnectionConditionsEnum.HaventBeenFound)
+    {
       statusConnection.value = responseCondition.connection_conditions
-    } else if (responseCondition.connection_conditions != ConnectionConditionsEnum.CanBeConnected) {
+    } else if (responseCondition.connection_conditions != ConnectionConditionsEnum.CanBeConnected)
+    {
       statusConnection.value = ConnectionConditionsEnum.CantBeConnected
     }
   }
 
-  // if(responseCondition.connection_conditions == 'MOZNA_PODLACZAC' &&
-  //     (
-  //         responseCondition.sale_internet_max_speed < 1000 ||
-  //         responseCondition.sale_iptv_access == 'NIE' ||
-  //         responseCondition.connection_extra_payment != 0.00 ||
-  //         responseCondition.substructure_monthly_payment != 0.00 ||
-  //         responseCondition.connection_days_needed != 0
-  //     ))
 
   const selectedZipCode = ref()
   const formError = ref();
@@ -141,11 +136,6 @@
   };
 
 
-
-
-
-
-
   function handleDataSent(n:number):void {
     console.log(n)
   }
@@ -155,13 +145,12 @@
 
 </script>
 <template>
-<!--  Zrobić naliczanie kosztów, dodatkowych opłat itd, stylizacja reszty formularzy, uproszczenie kodu, dodanie komentarzy tłumaczących kod-->
 <div class="container">
   <div class="addressForm" v-if="!statusConnection">
     <label for="city">
       Miejscowość:
       <div class="user-address-forms">
-        <multiselect v-model="selectedCity" :custom-label="customLabel"  label="gmina" :options="cities" :searchable="true" :close-on-select="true" :show-labels="false"
+        <multiselect id="city" v-model="selectedCity" :custom-label="customLabel"  label="gmina" :options="cities" :searchable="true" :close-on-select="true" :show-labels="false"
                      placeholder="np. Knurów" @search-change="getCities" :limit="3" :options-limit="10" >
 
         </multiselect>
@@ -172,7 +161,7 @@
     <label for="street">
       Ulica:
       <div class="user-address-forms">
-        <multiselect v-model="selectedStreet"  :options="streets" label="ulica" :searchable="true" :close-on-select="true" :show-labels="false"
+        <multiselect id="street" v-model="selectedStreet"  :options="streets" label="ulica" :searchable="true" :close-on-select="true" :show-labels="false"
                      placeholder="np. Szpitalna" @search-change="getStreets" :limit="3" :options-limit="10">
         </multiselect>
       </div>
@@ -181,14 +170,14 @@
     <label for="zip">
       Kod pocztowy:
       <div class="user-address-forms">
-        <input class=" formInput multiselect__current" type="text" placeholder="np. 44-190" v-model="selectedZipCode" validate-on-blur max="6" @input="handleZipCode" maxlength="6">
+        <input class=" formInput multiselect__current" id="zip" type="text" placeholder="np. 44-190" v-model="selectedZipCode" validate-on-blur max="6" @input="handleZipCode" maxlength="6">
       </div>
     </label>
 
     <label for="house">
       Numer domu/budynku:
       <div class="user-address-forms">
-        <input class=" formInput multiselect__current " type="text" min="1" v-model="selectedHouseNumber">
+        <input class=" formInput multiselect__current " id="house" type="text" min="1" v-model="selectedHouseNumber">
       </div>
     </label>
     <button class="btn" @click="submitForm">Dalej</button>
