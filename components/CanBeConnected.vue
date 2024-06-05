@@ -164,7 +164,6 @@ const getUserData = async () => {
     //   connection
     // }
   }
-  console.log(clientCompleteData);
 };
 
 
