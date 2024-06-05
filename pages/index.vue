@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {CanBeConnected, CantBeConnected, HaventBeenFound, SpecialOffer, AddressForm} from '#components';
+import {CanBeConnected, CantBeConnected, HaventBeenFound, ContactForm, AddressForm} from '#components';
 import { ConnectionConditionsEnum } from '@/enums/enums';
 import {useConnectionStore} from "@/stores/conditionsStore";
 const connectionStore = useConnectionStore();
@@ -18,8 +18,8 @@ const connectionStatus = computed(() => connectionStore.connectionConditions?.co
     <CantBeConnected v-else-if="connectionStatus === ConnectionConditionsEnum.CantBeConnected">
     </CantBeConnected>
 
-    <SpecialOffer v-else-if="connectionStatus === ConnectionConditionsEnum.SpecialOffer">
-    </SpecialOffer>
+    <ContactForm v-else-if="connectionStatus === ConnectionConditionsEnum.SpecialOffer">
+    </ContactForm>
 
     <HaventBeenFound v-else-if="connectionStatus === ConnectionConditionsEnum.HaventBeenFound">
     </HaventBeenFound>

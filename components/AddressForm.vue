@@ -124,9 +124,9 @@ const submitForm = () => {
 };
 
 
-function handleDataSent(n:number):void {
-  console.log(n)
-}
+//function handleDataSent(n:number):void {
+//   console.log(n)
+// }
 function customLabel(city) {
   return `${city.miasto}, ${city.gmina}, ${city.powiat}`
 }

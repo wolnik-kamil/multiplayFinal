@@ -7,3 +7,11 @@ interface GeneralConnectionConditionsI {
     connection_days_needed: number,
     address_pna: string
 }
+interface ClientDataI {
+    clientData: {
+        client_name: string,
+        client_surname: string,
+        client_phone_number: string,
+        client_uid: string,
+    },
+}
