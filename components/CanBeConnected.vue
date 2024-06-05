@@ -1,17 +1,18 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
 import { useConnectionStore } from '@/stores/conditionsStore';
+import {toNumber} from "@vue/shared";
 
 
 // Conditions from response
 const connectionStore = useConnectionStore();
-//const connectionStatus = computed(() => connectionStore.connectionStatus);
 const connectionConditions = computed(() => connectionStore.connectionConditions);
 const maxNet = computed(() => connectionConditions.value?.sale_internet_max_speed ?? 0);
-const isTv = true; //computed(() => connectionConditions.value?.sale_iptv_access ?? false);
+const isTv = computed(() => connectionConditions.value?.sale_iptv_access ?? false);
 const connectionExtraPayment = computed(() => connectionConditions.value?.connection_extra_payment ?? '0.00');
 const substructureExtraPayment = computed(() => connectionConditions.value?.substructure_monthly_payment ?? '0.00');
-const daysToConnect = computed(() => connectionConditions.value?.connection_days_needed ?? 0);
+// const daysToConnect = computed(() => connectionConditions.value?.connection_days_needed ?? 0);
 const tvChecked = ref(false);
+const uid = computed(() => connectionConditions.value?.uid ?? '');
 
 
 // Interface for an object below
@@ -25,7 +26,6 @@ interface OfferOptionsI {
   multiroom: string;
   pvr: string;
 }
-
 
 //Offer Variables' object
 const offerOptions = ref({
@@ -46,7 +46,6 @@ type ConditionType = {
     [key: string]: number
   }
 };
-
 const priceConditions: ConditionType = {
   net: {
     '01': 40,
@@ -95,7 +94,7 @@ const price = computed(() => {
   return Object.entries(offerOptions.value)
       .reduce((totalPrice, [key, value]) => {
         if (priceConditions[key]?.[value] !== undefined) {
-          totalPrice += priceConditions[key][value];
+          totalPrice += priceConditions[key][value] + toNumber(connectionExtraPayment.value) + toNumber(substructureExtraPayment.value) ;
         }
         return totalPrice;
       }, 0);
@@ -116,33 +115,23 @@ async function generateCode(offerOptions: OfferOptionsI): Promise<void> {
 }
 
 
-// Validation for a phone number
-const phone = ref<string>('');
-const name = ref<string>('');
-const surname = ref<string>('');
+//validation function for contact form
 const formError = ref();
-
-// Data from final form which is full name, phone number etc.
-const getUserData = async () => {
-  const userPhoneNumber = `${phone.value}`;
-  const userName = `${name.value}`;
-  const userSurname = `${surname.value}`;
-  const userOfferCode = `${offerCode.value}`;
-  const clientCompleteData = {
-    clientName: userName,
-    clientSurname: userSurname,
-    clientPhoneNumber: userPhoneNumber,
-    clientOfferCode: offerCode.value,
-
-  }
-  console.log(clientCompleteData);
+const handlePhoneNumber = (event: Event) => {
+  let phoneInput = event.target as HTMLInputElement;
+  let value = phoneInput.value.replace(/\D/g, '');// user can only type int
+  phoneInput.value = value; // new value
 };
 
+const handleFullname = (event: Event) => {
+  let inputs = event.target as HTMLInputElement;
+  let value = inputs.value.replace(/\d/g, '');// user can't type int
+  inputs.value = value; // new val
+}
 
-//validation function for contact form
 const validateForm = () => {
-  if (!name.value || !surname.value || !phone.value) {
-    formError.value = 'Sprawdź, czy wszystko wypełniłeś';
+  if (!name.value || !surname.value || !phone.value || phone.value.length != 9) {
+    formError.value = 'Sprawdź, czy wszystko dobrze wypełniłeś';
     alert(formError.value)
   } else {
     formError.value = null;
@@ -150,14 +139,36 @@ const validateForm = () => {
 };
 
 
-//Checking if data is set or not
-const submitForm = () => {
+//Checking if data is set
+const submitForm = (event: Event) => {
   validateForm();
-
   if (!formError.value) {
     getUserData();
   }
 };
+
+// Data from final form which is full name, phone number etc.
+const phone = ref<string>('');
+const name = ref<string>('');
+const surname = ref<string>('');
+const getUserData = async () => {
+  const clientCompleteData = {
+    clientPersonalData: {
+      client_name: name.value,
+      client_surname: surname.value,
+      client_phone_number: phone.value,
+      client_offerCode: offerCode.value,
+      client_uid: uid.value
+    },
+    // clientAddress: {
+    //   connection
+    // }
+  }
+  console.log(clientCompleteData);
+};
+
+
+
 
 
 </script>
@@ -218,17 +229,17 @@ const submitForm = () => {
       <div v-else class="sendUserData">
         <div class="contactForm">
           <label for="Id">
-            <input placeholder="Imię" v-model="name" type="text" required>
+            <input placeholder="Imię" @input="handleFullname" v-model="name" type="text" required>
           </label>
 
           <label for="Id">
-            <input placeholder="Nazwiwsko" v-model="surname" type="text" required>
+            <input placeholder="Nazwiwsko" @input="handleFullname" v-model="surname" type="text" required>
           </label>
 
           <label for="Id" class="phone-label">
             <div class="phone-input">
               <input class="prefix" value="+48 " readonly>
-              <input class="number" placeholder="Numer telefonu" v-model="phone" minlength="9" maxlength="9" type="text">
+              <input class="number" placeholder="Numer telefonu" v-model="phone" @input="handlePhoneNumber" maxlength="9" type="text">
             </div>
           </label>
 

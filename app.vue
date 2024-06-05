@@ -1,7 +1,7 @@
 <template>
   <div>
-<!--      <NuxtPage/>-->
-    <CanBeConnected></CanBeConnected>
+      <NuxtPage/>
+<!--    <CanBeConnected></CanBeConnected>-->
   </div>
 </template>
 <script>

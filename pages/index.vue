@@ -24,7 +24,6 @@
 
   const cities = ref<object[]>([])
   const selectedCity = ref<SimcI | null>(null)
-
   async function getCities(cityName:string):Promise<void> {
     if (cityName && cityName.length >= 3) {
       const { data: response}  = await useFetch<SimcI[]>('/api/address/city', {
@@ -46,10 +45,8 @@
     ulic: number,
     ulica: string
   }
-
   const streets = ref<object[]>([])
   const selectedStreet = ref<UlicI | null>(null)
-
   async function getStreets(streetName:string):Promise<void> {
     if (streetName && streetName.length >= 3){
     const { data: response}  = await useFetch<UlicI[]>('/api/address/street', {
@@ -63,6 +60,7 @@
     }
   }
 
+
   interface GeneralConnectionConditionsI {
     connection_conditions: string,
     sale_internet_max_speed: number,
@@ -70,12 +68,12 @@
     connection_extra_payment: string,
     substructure_monthly_payment: string,
     connection_days_needed: number,
-    address_pna: string
+    address_pna: string,
+    uid: string,
   }
   const conditionsStore = useConnectionStore()
   const selectedHouseNumber = ref<number>()
   const statusConnection = ref()
-
   async function getHouseNumber() {
     const {data: response} = await useFetch<GeneralConnectionConditionsI[]>('/api/address/house', {
       query: {
@@ -92,18 +90,17 @@
     const responseCondition = response.value.data
     console.log(response.value)
     conditionsStore.setConnectionConditions(responseCondition)
-
-    if (responseCondition.connection_conditions == ConnectionConditionsEnum.CanBeConnected)
-    {
+    console.log(responseCondition.connection_conditions)
+    if (responseCondition.connection_conditions === null)
+      statusConnection.value = ConnectionConditionsEnum.HaventBeenFound
+    else if (responseCondition.connection_conditions == ConnectionConditionsEnum.CanBeConnected)
       statusConnection.value = responseCondition.connection_conditions
-    } else if
+    else if
     (responseCondition.connection_conditions == ConnectionConditionsEnum.HaventBeenFound)
-    {
       statusConnection.value = responseCondition.connection_conditions
-    } else if (responseCondition.connection_conditions != ConnectionConditionsEnum.CanBeConnected)
-    {
+    else if (responseCondition.connection_conditions != ConnectionConditionsEnum.CanBeConnected)
       statusConnection.value = ConnectionConditionsEnum.CantBeConnected
-    }
+    console.log(responseCondition)
   }
 
 
@@ -147,39 +144,38 @@
 <template>
 <div class="container">
   <div class="addressForm" v-if="!statusConnection">
-    <label for="city">
-      Miejscowość:
       <div class="user-address-forms">
+        <label for="city">
+        Miejscowość:
+        </label>
         <multiselect id="city" v-model="selectedCity" :custom-label="customLabel"  label="gmina" :options="cities" :searchable="true" :close-on-select="true" :show-labels="false"
                      placeholder="np. Knurów" @search-change="getCities" :limit="3" :options-limit="10" >
 
         </multiselect>
-
       </div>
-    </label>
 
-    <label for="street">
-      Ulica:
       <div class="user-address-forms">
+        <label for="street">
+          Ulica:
+        </label>
         <multiselect id="street" v-model="selectedStreet"  :options="streets" label="ulica" :searchable="true" :close-on-select="true" :show-labels="false"
                      placeholder="np. Szpitalna" @search-change="getStreets" :limit="3" :options-limit="10">
         </multiselect>
       </div>
-    </label>
 
-    <label for="zip">
-      Kod pocztowy:
       <div class="user-address-forms">
+        <label for="zip">
+          Kod pocztowy:
+        </label>
         <input class=" formInput multiselect__current" id="zip" type="text" placeholder="np. 44-190" v-model="selectedZipCode" validate-on-blur max="6" @input="handleZipCode" maxlength="6">
       </div>
-    </label>
 
-    <label for="house">
-      Numer domu/budynku:
       <div class="user-address-forms">
+        <label for="house">
+          Numer domu/budynku:
+        </label>
         <input class=" formInput multiselect__current " id="house" type="text" min="1" v-model="selectedHouseNumber">
       </div>
-    </label>
     <button class="btn" @click="submitForm">Dalej</button>
   </div>
 
@@ -198,7 +194,6 @@
 
   </div>
 </div>
-
 
 
 
@@ -221,8 +216,8 @@
   .addressForm>label {
     margin-bottom: 1rem;
   }
-  .addressForm>label>.user-address-forms {
-    width: 100%;
+  .addressForm .user-address-forms {
+    width: max-content;
     padding: 12px 20px;
     margin: 8px 0;
     box-sizing: border-box;

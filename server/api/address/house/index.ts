@@ -13,5 +13,6 @@ export default defineEventHandler(async (event) => {
             Authorization: `token ${config.mmsToken}`
         }
     })
+
     return getHouse
 })
