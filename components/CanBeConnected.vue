@@ -1,7 +1,7 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
 import { useConnectionStore } from '@/stores/conditionsStore';
 import {toNumber} from "@vue/shared";
-
+import {useOfferCodeStore} from "@/stores/offerCodeStore";
 
 // Conditions from response
 const connectionStore = useConnectionStore();
@@ -98,6 +98,7 @@ const price = computed(() => {
 
 //Generating offer code after submitting form
 const offerCode = ref<string>('')
+const offerCodeStore = useOfferCodeStore();
 async function generateCode(offerOptions: OfferOptionsI): Promise<void> {
   let code = '';
   for (const key in offerOptions) {
@@ -107,6 +108,7 @@ async function generateCode(offerOptions: OfferOptionsI): Promise<void> {
   }
   code += '000000';
   offerCode.value = code;
+  offerCodeStore.setOfferCode(offerCode.value);
 }
 
 </script>

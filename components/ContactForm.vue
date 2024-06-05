@@ -2,7 +2,8 @@
 import { useConnectionStore } from '@/stores/conditionsStore';
 import {toNumber} from "@vue/shared";
 import {interfaceTypeAnnotation} from "@babel/types";
-import {useClientDataStore} from "~/stores/clientDataStore";
+import {useClientDataStore} from "@/stores/clientDataStore";
+import {useOfferCodeStore} from "@/stores/offerCodeStore";
 
 const connectionStore = useConnectionStore();
 const connectionConditions = computed(() => connectionStore.connectionConditions);
@@ -49,9 +50,12 @@ interface ClientDataI {
     client_surname: string,
     client_phone_number: string,
     client_uid: string,
+    client_offer_code: string
   },
 }
-const clientDataStore = useClientDataStore()
+const clientDataStore = useClientDataStore(); // full data from this file's form
+const offerCodeStore = useOfferCodeStore(); // offer code from /components/CanBeConnected.vue
+const offerCode = computed(() => offerCodeStore?.generatedCode);
 const phone = ref<string>('');
 const name = ref<string>('');
 const surname = ref<string>('');
@@ -61,10 +65,12 @@ const getUserData = async () => {
       client_name: name.value,
       client_surname: surname.value,
       client_phone_number: phone.value,
-      client_uid: uid.value
+      client_uid: uid.value,
+      client_offer_code: offerCode?.value
     },
   }
   clientDataStore.setData(clientCompleteData)
+  console.log(clientCompleteData)
 };
 
 
