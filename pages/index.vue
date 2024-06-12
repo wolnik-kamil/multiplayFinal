@@ -8,22 +8,25 @@ const connectionStatus = computed(() => connectionStore.connectionConditions?.co
 </script>
 <template>
 <div class="container" >
-  <AddressForm v-if="!connectionStatus">
-  </AddressForm>
+<!--  <AddressForm v-if="!connectionStatus">-->
+<!--  </AddressForm>-->
 
-  <div class="conditionsResults" v-else>
-    <CanBeConnected v-if="connectionStatus === ConnectionConditionsEnum.CanBeConnected">
-    </CanBeConnected>
+<!--  <div class="conditionsResults" v-else>-->
+<!--    <CanBeConnected v-if="connectionStatus === ConnectionConditionsEnum.CanBeConnected">-->
+<!--    </CanBeConnected>-->
 
-    <CantBeConnected v-else-if="connectionStatus === ConnectionConditionsEnum.CantBeConnected">
-    </CantBeConnected>
+<!--    <CantBeConnected v-else-if="connectionStatus === ConnectionConditionsEnum.CantBeConnected">-->
+<!--    </CantBeConnected>-->
 
-    <ContactForm v-else-if="connectionStatus === ConnectionConditionsEnum.SpecialOffer">
-    </ContactForm>
+<!--    <ContactForm v-else-if="connectionStatus === ConnectionConditionsEnum.SpecialOffer">-->
+<!--    </ContactForm>-->
 
-    <HaventBeenFound v-else-if="connectionStatus === ConnectionConditionsEnum.HaventBeenFound">
-    </HaventBeenFound>
-  </div>
+<!--    <HaventBeenFound v-else-if="connectionStatus === ConnectionConditionsEnum.HaventBeenFound">-->
+<!--    </HaventBeenFound>-->
+<!--  </div>-->
+  <CanBeConnected>
+
+  </CanBeConnected>
 </div>
 
 

@@ -1,9 +1,10 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
 import { useConnectionStore } from '@/stores/conditionsStore';
-import {toNumber} from "@vue/shared";
-import {interfaceTypeAnnotation} from "@babel/types";
 import {useClientDataStore} from "@/stores/clientDataStore";
 import {useOfferCodeStore} from "@/stores/offerCodeStore";
+import { useIpStore } from '@/stores/ipStore';
+
+
 
 const connectionStore = useConnectionStore();
 const connectionConditions = computed(() => connectionStore.connectionConditions);
@@ -50,12 +51,15 @@ interface ClientDataI {
     client_surname: string,
     client_phone_number: string,
     client_uid: string,
-    client_offer_code: string
+    client_offer_code: string,
+    client_ip: string
   },
 }
 const clientDataStore = useClientDataStore(); // full data from this file's form
-const offerCodeStore = useOfferCodeStore(); // offer code from /components/CanBeConnected.vue
-const offerCode = computed(() => offerCodeStore?.generatedCode);
+const offerCodeStore = useOfferCodeStore();
+const ipStore = useIpStore();
+const ip = computed(() => ipStore.ip);
+const offerCode = computed(() => offerCodeStore?.generatedCode);// offer code from /components/CanBeConnected.vue
 const phone = ref<string>('');
 const name = ref<string>('');
 const surname = ref<string>('');
@@ -66,12 +70,14 @@ const getUserData = async () => {
       client_surname: surname.value,
       client_phone_number: phone.value,
       client_uid: uid.value,
-      client_offer_code: offerCode?.value
+      client_offer_code: offerCode?.value,
+      client_ip: ip.value
     },
   }
   clientDataStore.setData(clientCompleteData)
   console.log(clientCompleteData)
 };
+
 
 
 </script>
@@ -82,7 +88,7 @@ const getUserData = async () => {
     </label>
 
     <label for="Id">
-      <input placeholder="Nazwiwsko" @input="handleFullname" v-model="surname" type="text" required>
+      <input placeholder="Nazwisko" @input="handleFullname" v-model="surname" type="text" required>
     </label>
 
     <label for="Id" class="phone-label">

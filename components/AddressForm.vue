@@ -83,17 +83,18 @@ async function getHouseNumber() {
 
   const responseCondition = response.value.data
   conditionsStore.setConnectionConditions(responseCondition)
-  if (responseCondition.connection_conditions === null)
-    statusConnection.value = ConnectionConditionsEnum.HaventBeenFound
-  else if (responseCondition.connection_conditions == ConnectionConditionsEnum.CanBeConnected)
-    statusConnection.value = responseCondition.connection_conditions
-  else if
-  (responseCondition.connection_conditions == ConnectionConditionsEnum.HaventBeenFound)
-    statusConnection.value = responseCondition.connection_conditions
-  else if (responseCondition.connection_conditions != ConnectionConditionsEnum.CanBeConnected)
-    statusConnection.value = ConnectionConditionsEnum.CantBeConnected
+//   if (responseCondition.connection_conditions === null)
+//     statusConnection.value = ConnectionConditionsEnum.HaventBeenFound
+//   else if (responseCondition.connection_conditions == ConnectionConditionsEnum.CanBeConnected)
+//     statusConnection.value = responseCondition.connection_conditions
+//   else if
+//   (responseCondition.connection_conditions == ConnectionConditionsEnum.HaventBeenFound)
+//     statusConnection.value = responseCondition.connection_conditions
+//   else if (responseCondition.connection_conditions != ConnectionConditionsEnum.CanBeConnected)
+//     statusConnection.value = ConnectionConditionsEnum.CantBeConnected
+//
+  statusConnection.value = ConnectionConditionsEnum.CanBeConnected
 }
-
 
 //validation for zip-code
 const selectedZipCode = ref()
