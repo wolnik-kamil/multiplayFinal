@@ -2,6 +2,7 @@
 import Multiselect from "vue-multiselect";
 import { useConnectionStore } from '@/stores/conditionsStore'
 import { ConnectionConditionsEnum } from '@/enums/enums'
+import {FetchError} from "ofetch";
 
 //Zapis nazwy miasta i wysyłanie do pliku
 interface SimcI {
@@ -18,18 +19,22 @@ interface SimcI {
 const cities = ref<object[]>([])
 const selectedCity = ref<SimcI | null>(null)
 async function getCities(cityName:string):Promise<void> {
-  if (cityName && cityName.length >= 3) {
-    const { data: response}  = await useFetch<SimcI[]>('/api/address/city', {
-      query: {search: cityName}
-    })
-    if(!response.value?.length) {
-      return;
+  try {
+    if (cityName && cityName.length >= 3) {
+      const {data: response} = await useFetch<SimcI[]>('/api/address/city', {
+        query: {search: cityName}
+      })
+
+      if (!response.value?.length) {
+        return
+      }
+
+      cities.value = response.value
     }
-
-    cities.value = response.value
   }
-
-
+  catch(error) {
+      alert('esssa')
+  }
 
 }
 
@@ -159,7 +164,7 @@ function customLabel(city) {
       <label for="zip">
         Kod pocztowy:
       </label>
-      <input class=" formInput multiselect__current" id="zip" type="text" autocomplete="off" placeholder="np. 44-190" v-model="selectedZipCode" validate-on-blur max="6" @input="handleZipCode" maxlength="6">
+      <input class=" formInput multiselect__current" id="zip" type="text" autocomplete="off" placeholder="np. 44-190"  data-test="input-zipCode" v-model="selectedZipCode" validate-on-blur max="6" @input="handleZipCode" maxlength="6">
     </div>
 
     <div class="user-address-forms">
@@ -200,6 +205,7 @@ function customLabel(city) {
   border: 0;
   width: 5rem;
   font-size: 12px;
+  margin-top: 1rem;
 }
 .btn:hover {
   cursor: pointer;

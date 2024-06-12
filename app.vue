@@ -4,6 +4,11 @@
 <!--    <CanBeConnected></CanBeConnected>-->
   </div>
 </template>
-<script>
-
+<script setup lang="ts">
+useHead({
+  title: 'Oferta',
+  meta: [
+    {name: 'description', content: 'Oferta dal klientów.'}
+  ]
+})
 </script>

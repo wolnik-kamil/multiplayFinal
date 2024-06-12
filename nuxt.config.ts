@@ -22,7 +22,7 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  modules: ['@pinia/nuxt', 'nuxt-security', '@nuxt/devtools'],
+  modules: ['@pinia/nuxt', 'nuxt-security', '@nuxt/devtools', '@nuxt/test-utils/module'],
   security: {
     headers: {
       crossOriginEmbedderPolicy: process.env.NODE_ENV === 'development' ? 'unsafe-none' : 'require-corp',
