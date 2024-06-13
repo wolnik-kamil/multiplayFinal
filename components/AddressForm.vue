@@ -32,10 +32,21 @@ async function getCities(cityName:string):Promise<void> {
       cities.value = response.value
     }
   }
-  catch(error) {
-      alert('esssa')
+  catch (error) {
+    handleFetchError(error);
   }
 
+}
+
+function handleFetchError(error: any) {
+  console.error('Error fetching cities:', error);
+
+  // Możesz sprawdzić status odpowiedzi, jeśli error zawiera tę informację
+  if (error.response && error.response.status === 500) {
+    alert('Wystąpił błąd serwera. Proszę spróbować ponownie później.');
+  } else {
+    alert('Wystąpił błąd podczas pobierania danych. Proszę spróbować ponownie.');
+  }
 }
 
 //Zapis simc miasta i wyświetlanie ulic danej miejscowości
@@ -88,16 +99,7 @@ async function getHouseNumber() {
 
   const responseCondition = response.value.data
   conditionsStore.setConnectionConditions(responseCondition)
-//   if (responseCondition.connection_conditions === null)
-//     statusConnection.value = ConnectionConditionsEnum.HaventBeenFound
-//   else if (responseCondition.connection_conditions == ConnectionConditionsEnum.CanBeConnected)
-//     statusConnection.value = responseCondition.connection_conditions
-//   else if
-//   (responseCondition.connection_conditions == ConnectionConditionsEnum.HaventBeenFound)
-//     statusConnection.value = responseCondition.connection_conditions
-//   else if (responseCondition.connection_conditions != ConnectionConditionsEnum.CanBeConnected)
-//     statusConnection.value = ConnectionConditionsEnum.CantBeConnected
-//
+
   statusConnection.value = ConnectionConditionsEnum.CanBeConnected
 }
 
@@ -145,7 +147,7 @@ function customLabel(city) {
       <label for="city">
         Miejscowość:
       </label>
-      <multiselect id="city" v-model="selectedCity" :custom-label="customLabel"  label="gmina" :options="cities" :searchable="true" :close-on-select="true" :show-labels="false"
+      <multiselect id="city" v-model="selectedCity" data-test="input-city" :custom-label="customLabel"  label="gmina" :options="cities" :searchable="true" :close-on-select="true" :show-labels="false"
                    placeholder="np. Knurów" @search-change="getCities" :limit="3" :options-limit="10" >
 
       </multiselect>
@@ -155,7 +157,7 @@ function customLabel(city) {
       <label for="street">
         Ulica:
       </label>
-      <multiselect id="street" v-model="selectedStreet"  :options="streets" label="ulica" :searchable="true" :close-on-select="true" :show-labels="false"
+      <multiselect id="street" v-model="selectedStreet" data-test="input-street" :options="streets" label="ulica" :searchable="true" :close-on-select="true" :show-labels="false"
                    placeholder="np. Szpitalna" @search-change="getStreets" :limit="3" :options-limit="10">
       </multiselect>
     </div>
@@ -205,7 +207,7 @@ function customLabel(city) {
   border: 0;
   width: 5rem;
   font-size: 12px;
-  margin-top: 1rem;
+  margin-top: 3rem;
 }
 .btn:hover {
   cursor: pointer;
