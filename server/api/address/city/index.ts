@@ -10,6 +10,6 @@ export default defineEventHandler(async (event) => {
             Authorization: `token ${config.mmsToken}`
         }
     })
+    console.log(cityQuery)
     return getCity
-
 })

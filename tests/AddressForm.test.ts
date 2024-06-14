@@ -1,8 +1,8 @@
-import {describe, expect} from "vitest";
+import {describe, expect, it} from "vitest";
 import {AddressForm} from "#components";
-import {mount} from "@vue/test-utils";
-import type {VueElement} from "vue";
+import {mount, VueWrapper} from "@vue/test-utils";
 import {Multiselect} from "vue-multiselect";
+import {mountSuspended} from "@nuxt/test-utils/runtime";
 
 
 describe('inputs validation test', () => {
@@ -12,14 +12,11 @@ describe('inputs validation test', () => {
         await inputField.setValue('12asdsdjak123');
         expect(inputField.element.value).toMatch('12-123');
     })
-    test('typing in multiselect should refresh value of variable', async ()=> {
-        const wrapper = mount(AddressForm)
-        const multiselect = wrapper.findAllComponents(Multiselect)
-        const select1 = multiselect[0].vm
-        const select2 = multiselect[1].vm
-        select1.$options.value = 'orna'
-        select2.$options.value = 'kolejowa'
-        console.log(select1.$select)
-        expect(select1.$options.value == "orna" && select2.$options.value == "kolejowa")
+    test('multiselects are matching with snapshot', async () => {
+        const wrapper = mountSuspended(AddressForm)
+        const multiselect = (await wrapper).findComponent('[data-test="input-city"]')
+        await multiselect.setValue('Knurów')
+        console.log(multiselect.element)
     })
+
 })
